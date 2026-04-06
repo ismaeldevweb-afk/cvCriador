@@ -1,0 +1,107 @@
+export const marketingContent = {
+  brand: {
+    name: "Criador de Curriculo Online",
+  },
+  hero: {
+    eyebrow: "Tecnologia Local-First para Carreira",
+    title: "Crie curriculos de alto impacto com design profissional de elite.",
+    subtitle:
+      "Uma plataforma moderna para construir sua carreira. Edicao em tempo real, templates premium e controle local dos dados para comecar sem friccao.",
+    primaryCta: "Escolher template",
+    secondaryCta: "Abrir painel",
+  },
+  quickProofs: [
+    {
+      title: "Gestao Centralizada",
+      description: "Organize multiplas versoes e candidaturas em um so lugar.",
+    },
+    {
+      title: "Edicao Instantanea",
+      description: "Visualize o resultado final em tempo real enquanto escreve.",
+    },
+    {
+      title: "Exportacao Otimizada",
+      description: "Arquivos prontos para impressao e envio profissional.",
+    },
+  ],
+  productPreview: {
+    eyebrow: "Preview do produto",
+    description:
+      "Interface pensada para clareza, velocidade de preenchimento e apresentacao profissional em qualquer tela.",
+    badge: "13 templates",
+    liveLabel: "Live",
+    editorLabel: "Editor",
+  },
+  templates: [
+    "Moderno",
+    "Classico",
+    "Executivo",
+    "Editorial",
+    "Minimalista",
+    "Compacto",
+    "Destaque",
+    "Timeline",
+    "Atelier",
+    "Horizonte",
+    "Noir",
+    "Mosaico",
+    "Ledger",
+  ],
+  audience: {
+    title: "Para quem e",
+    items: [
+      "Entrada no mercado e estagios",
+      "Transicao estrategica de carreira",
+      "Freelancers e profissionais liberais",
+      "Especialistas e lideranca",
+    ],
+  },
+  steps: {
+    title: "Como funciona",
+    items: [
+      "Comece pela escolha do template ideal para o contexto da vaga.",
+      "Construa o curriculo com preview ao vivo enquanto preenche e refina o conteudo.",
+      "Salve a versao e acompanhe tudo pelo dashboard local.",
+      "Gere o PDF quando estiver pronto para enviar.",
+    ],
+  },
+  benefits: [
+    {
+      eyebrow: "Experiencia Fluida",
+      title: "Editor Visual",
+      description:
+        "Preencha, reorganize e refine secoes com feedback instantaneo e acabamento profissional em tempo real.",
+    },
+    {
+      eyebrow: "Design Contextual",
+      title: "Templates Premium",
+      description:
+        "Modelos classicos, executivos, editoriais e compactos com consistencia visual na exportacao.",
+    },
+    {
+      eyebrow: "Controle Local",
+      title: "Soberania de Dados",
+      description:
+        "Seus curriculos ficam salvos neste navegador, com fluxo local-first e sem cadastro para comecar.",
+    },
+  ],
+  finalCta: {
+    eyebrow: "Arquitetura de Proxima Geracao",
+    title: "Uma base robusta preparada para o futuro da inteligencia profissional.",
+    description:
+      "O MVP combina performance fluida, estrutura modular e persistencia local para garantir agilidade total na sua busca por oportunidades.",
+    cta: "Escolher template",
+  },
+  footer: {
+    description:
+      "Crie curriculos com controle local dos dados, exportacao profissional e design de alto nivel. Seus dados ficam sob seu controle neste navegador.",
+    pills: ["LOCAL-FIRST", "ZERO LOGIN", "PDF EXPORT", "PREMIUM DESIGN"],
+    navigationTitle: "Navegacao",
+    experienceTitle: "Experiencia",
+    experienceItems: [
+      "Controle local dos dados salvos neste navegador.",
+      "Engine preparada para integracoes de IA e sincronizacao inteligente.",
+    ],
+    tagline: "Produto local-first para criacao e exportacao profissional",
+  },
+};

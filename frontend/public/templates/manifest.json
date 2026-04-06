@@ -1,0 +1,83 @@
+{
+  "generatedAt": "2026-04-06T04:02:17.232Z",
+  "templates": [
+    {
+      "id": "modern",
+      "name": "Moderno",
+      "fileName": "modern.png",
+      "src": "/templates/modern.png"
+    },
+    {
+      "id": "classic",
+      "name": "Classico",
+      "fileName": "classic.png",
+      "src": "/templates/classic.png"
+    },
+    {
+      "id": "executive",
+      "name": "Executivo",
+      "fileName": "executive.png",
+      "src": "/templates/executive.png"
+    },
+    {
+      "id": "editorial",
+      "name": "Editorial",
+      "fileName": "editorial.png",
+      "src": "/templates/editorial.png"
+    },
+    {
+      "id": "minimal",
+      "name": "Minimalista",
+      "fileName": "minimal.png",
+      "src": "/templates/minimal.png"
+    },
+    {
+      "id": "compact",
+      "name": "Compacto",
+      "fileName": "compact.png",
+      "src": "/templates/compact.png"
+    },
+    {
+      "id": "spotlight",
+      "name": "Destaque",
+      "fileName": "spotlight.png",
+      "src": "/templates/spotlight.png"
+    },
+    {
+      "id": "timeline",
+      "name": "Timeline",
+      "fileName": "timeline.png",
+      "src": "/templates/timeline.png"
+    },
+    {
+      "id": "atelier",
+      "name": "Atelier",
+      "fileName": "atelier.png",
+      "src": "/templates/atelier.png"
+    },
+    {
+      "id": "horizon",
+      "name": "Horizonte",
+      "fileName": "horizon.png",
+      "src": "/templates/horizon.png"
+    },
+    {
+      "id": "noir",
+      "name": "Noir",
+      "fileName": "noir.png",
+      "src": "/templates/noir.png"
+    },
+    {
+      "id": "mosaic",
+      "name": "Mosaico",
+      "fileName": "mosaic.png",
+      "src": "/templates/mosaic.png"
+    },
+    {
+      "id": "ledger",
+      "name": "Ledger",
+      "fileName": "ledger.png",
+      "src": "/templates/ledger.png"
+    }
+  ]
+}
