@@ -10,8 +10,7 @@ const frontendRoot = path.resolve(currentDir, "..");
 const outputDir = path.resolve(frontendRoot, "public/templates");
 const publicDir = path.resolve(frontendRoot, "public");
 const publicBaseHref = `${pathToFileURL(publicDir).href.replace(/\/?$/, "/")}`;
-const backendPackagePath = path.resolve(frontendRoot, "../backend/package.json");
-const backendRequire = createRequire(backendPackagePath);
+const frontendRequire = createRequire(import.meta.url);
 
 const shouldSkip = process.env.SKIP_TEMPLATE_IMAGES === "1";
 const isCheckMode = process.argv.includes("--check");
@@ -371,11 +370,11 @@ async function generateTemplateImages() {
     let puppeteer;
 
     try {
-      puppeteer = backendRequire("puppeteer");
+      puppeteer = frontendRequire("puppeteer");
     } catch (error) {
       if (error?.code === "MODULE_NOT_FOUND") {
         throw new Error(
-          "Puppeteer nao esta disponivel para gerar as imagens dos templates. Instale as dependencias do backend para regenerar as miniaturas.",
+          "Puppeteer nao esta disponivel para gerar as imagens dos templates. Instale as dependencias do frontend para regenerar as miniaturas.",
         );
       }
 
