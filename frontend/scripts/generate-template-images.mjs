@@ -12,7 +12,6 @@ const publicDir = path.resolve(frontendRoot, "public");
 const publicBaseHref = `${pathToFileURL(publicDir).href.replace(/\/?$/, "/")}`;
 const backendPackagePath = path.resolve(frontendRoot, "../backend/package.json");
 const backendRequire = createRequire(backendPackagePath);
-const puppeteer = backendRequire("puppeteer");
 
 const shouldSkip = process.env.SKIP_TEMPLATE_IMAGES === "1";
 const isCheckMode = process.argv.includes("--check");
@@ -367,6 +366,20 @@ async function generateTemplateImages() {
     if (isCheckMode) {
       console.log(`check-ok ${templateOptions.length} templates carregados`);
       return;
+    }
+
+    let puppeteer;
+
+    try {
+      puppeteer = backendRequire("puppeteer");
+    } catch (error) {
+      if (error?.code === "MODULE_NOT_FOUND") {
+        throw new Error(
+          "Puppeteer nao esta disponivel para gerar as imagens dos templates. Instale as dependencias do backend para regenerar as miniaturas.",
+        );
+      }
+
+      throw error;
     }
 
     const browser = await puppeteer.launch({
