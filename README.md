@@ -1,6 +1,6 @@
 # Criador de Curriculo Online
 
-Plataforma web para criar curriculos profissionais com editor visual, preview em tempo real, dashboard local, exportacao em PDF e importacao inteligente a partir de GitHub e PDFs.
+Plataforma web para criar curriculos profissionais com editor visual, preview em tempo real, dashboard local, exportacao em PDF, importacao inteligente a partir de GitHub e PDFs, e recursos de IA mockados.
 
 ## Stack
 
@@ -84,4 +84,5 @@ O repositório inclui workflow em `.github/workflows/ci.yml` para:
 2. Os curriculos ficam persistidos no `localStorage` do navegador atual.
 3. O editor dividido em secoes mostra preview em tempo real.
 4. A importacao inteligente ajuda a reaproveitar dados de GitHub, LinkedIn PDF e curriculos em PDF.
-5. O curriculo pode ser exportado em PDF no template escolhido.
+5. As ferramentas de IA mockadas ajudam a melhorar resumo, objetivo e habilidades.
+6. O curriculo pode ser exportado em PDF no template escolhido.
