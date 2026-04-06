@@ -1,6 +1,7 @@
 import dns from "node:dns/promises";
 import net from "node:net";
 import puppeteer from "puppeteer";
+import { runtimeConfig } from "../config/runtimeConfig.js";
 import { createHttpError } from "../utils/http.js";
 
 const MAX_HTML_LENGTH = 1_500_000;
@@ -42,8 +43,12 @@ function normalizeHostRule(value = "") {
   return normalized.replace(/^\.+/, "");
 }
 
-export function createAllowedImageHostRules(configuredHosts = process.env.ALLOWED_PDF_IMAGE_HOSTS) {
-  const source = configuredHosts ? configuredHosts.split(",") : DEFAULT_ALLOWED_IMAGE_HOSTS;
+export function createAllowedImageHostRules(configuredHosts = runtimeConfig.allowedPdfImageHosts) {
+  const source = Array.isArray(configuredHosts)
+    ? configuredHosts
+    : configuredHosts
+      ? configuredHosts.split(",")
+      : DEFAULT_ALLOWED_IMAGE_HOSTS;
 
   return Array.from(new Set(source.map(normalizeHostRule).filter(Boolean)));
 }
@@ -316,7 +321,7 @@ export async function generatePdf({ html }) {
     throw createHttpError("O documento ficou grande demais para gerar o PDF com seguranca.", 413);
   }
 
-  const disableSandbox = process.env.PUPPETEER_DISABLE_SANDBOX === "1";
+  const disableSandbox = runtimeConfig.disablePuppeteerSandbox;
   const browser = await puppeteer.launch({
     headless: true,
     args: buildLaunchArgs(disableSandbox),

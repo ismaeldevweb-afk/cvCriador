@@ -1,4 +1,30 @@
-export const API_BASE = import.meta.env.VITE_API_URL ?? "/api";
+function normalizeApiBase(value = "") {
+  return String(value ?? "").trim().replace(/\/+$/g, "");
+}
+
+function isLocalApiBase(value = "") {
+  return /^https?:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?(?:\/|$)/i.test(value);
+}
+
+function resolveApiBase() {
+  const configuredApiBase = normalizeApiBase(import.meta.env.VITE_API_URL);
+
+  if (configuredApiBase) {
+    if (import.meta.env.PROD && isLocalApiBase(configuredApiBase)) {
+      throw new Error("VITE_API_URL cannot point to localhost in production.");
+    }
+
+    return configuredApiBase;
+  }
+
+  if (import.meta.env.DEV) {
+    return "/api";
+  }
+
+  throw new Error("VITE_API_URL must be configured for production deployments.");
+}
+
+export const API_BASE = resolveApiBase();
 
 export class ApiError extends Error {
   constructor(message, { status, data, path } = {}) {

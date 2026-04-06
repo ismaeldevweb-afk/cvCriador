@@ -39,7 +39,9 @@ backend/
 Use os exemplos incluidos no repositório:
 
 - `backend/.env.example`
+- `backend/.env.production.example`
 - `frontend/.env.example`
+- `frontend/.env.production.example`
 
 Variaveis principais do backend:
 
@@ -50,7 +52,8 @@ Variaveis principais do backend:
 
 Variavel principal do frontend:
 
-- `VITE_API_URL`: URL base da API
+- `VITE_API_URL`: URL base da API. Em desenvolvimento, use `/api`; em producao, use a URL publica completa da API.
+- `VITE_API_PROXY_TARGET`: destino local usado pelo proxy do Vite no desenvolvimento
 
 ## Execucao local
 
@@ -77,6 +80,12 @@ O repositório inclui workflow em `.github/workflows/ci.yml` para:
 
 - instalar dependencias do backend e rodar `npm test`
 - instalar dependencias do frontend e rodar `npm run build`
+
+## Deploy
+
+1. Copie `backend/.env.production.example` para `backend/.env` no ambiente do servidor e defina `ALLOWED_ORIGINS` com o dominio publico do frontend.
+2. Copie `frontend/.env.production.example` para `frontend/.env.production` e defina `VITE_API_URL` com a URL publica da API.
+3. O backend rejeita CORS fora da lista configurada e passa a exigir `ALLOWED_ORIGINS` em producao.
 
 ## Fluxo principal
 

@@ -4,6 +4,7 @@ import cors from "cors";
 import express from "express";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
+import { runtimeConfig, normalizeOrigin } from "./config/runtimeConfig.js";
 import aiRoutes from "./routes/aiRoutes.js";
 import exportRoutes from "./routes/exportRoutes.js";
 import importRoutes from "./routes/importRoutes.js";
@@ -11,19 +12,7 @@ import { errorHandler } from "./middleware/errorHandler.js";
 import { createHttpError } from "./utils/http.js";
 
 const currentFile = fileURLToPath(import.meta.url);
-const defaultAllowedOrigins = ["http://localhost:5173", "http://127.0.0.1:5173"];
-
-function getAllowedOrigins() {
-  const configuredOrigins = process.env.ALLOWED_ORIGINS;
-
-  return new Set(
-    (configuredOrigins ? configuredOrigins.split(",") : defaultAllowedOrigins)
-      .map((origin) => origin.trim())
-      .filter(Boolean),
-  );
-}
-
-const allowedOrigins = getAllowedOrigins();
+const allowedOrigins = new Set(runtimeConfig.allowedOrigins);
 
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -67,7 +56,7 @@ app.use(
 app.use(
   cors({
     origin(origin, callback) {
-      if (!origin || allowedOrigins.has(origin)) {
+      if (!origin || allowedOrigins.has(normalizeOrigin(origin))) {
         callback(null, true);
         return;
       }
@@ -93,7 +82,7 @@ app.use("/api/import-profile", importRoutes);
 app.use("/api", exportRoutes);
 app.use(errorHandler);
 
-export async function startServer(port = process.env.PORT ?? 4000) {
+export async function startServer(port = runtimeConfig.port) {
   return new Promise((resolve, reject) => {
     const server = app.listen(port, () => {
       console.log(`Resume Studio API running at http://localhost:${port}`);
@@ -108,7 +97,7 @@ export async function startServer(port = process.env.PORT ?? 4000) {
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === currentFile) {
-  startServer().catch((error) => {
+  startServer(runtimeConfig.port).catch((error) => {
     console.error("Failed to start Resume Studio API", error);
     process.exit(1);
   });
