@@ -1,6 +1,7 @@
 const templateShowcaseThemes = {
   modern: {
     accent: "#14b8a6",
+    accentInk: "#0f766e",
     accentSoft: "rgba(20,184,166,0.14)",
     glow: "rgba(45,212,191,0.38)",
     shadow: "rgba(15,118,110,0.26)",
@@ -10,6 +11,7 @@ const templateShowcaseThemes = {
   },
   classic: {
     accent: "#475569",
+    accentInk: "#334155",
     accentSoft: "rgba(71,85,105,0.12)",
     glow: "rgba(148,163,184,0.32)",
     shadow: "rgba(51,65,85,0.18)",
@@ -19,6 +21,7 @@ const templateShowcaseThemes = {
   },
   executive: {
     accent: "#2563eb",
+    accentInk: "#1d4ed8",
     accentSoft: "rgba(37,99,235,0.14)",
     glow: "rgba(96,165,250,0.36)",
     shadow: "rgba(37,99,235,0.22)",
@@ -28,6 +31,7 @@ const templateShowcaseThemes = {
   },
   editorial: {
     accent: "#ea580c",
+    accentInk: "#c2410c",
     accentSoft: "rgba(234,88,12,0.14)",
     glow: "rgba(251,146,60,0.34)",
     shadow: "rgba(194,65,12,0.2)",
@@ -37,6 +41,7 @@ const templateShowcaseThemes = {
   },
   minimal: {
     accent: "#52525b",
+    accentInk: "#3f3f46",
     accentSoft: "rgba(82,82,91,0.12)",
     glow: "rgba(161,161,170,0.32)",
     shadow: "rgba(63,63,70,0.18)",
@@ -46,6 +51,7 @@ const templateShowcaseThemes = {
   },
   compact: {
     accent: "#0891b2",
+    accentInk: "#0e7490",
     accentSoft: "rgba(8,145,178,0.14)",
     glow: "rgba(34,211,238,0.3)",
     shadow: "rgba(14,116,144,0.2)",
@@ -55,6 +61,7 @@ const templateShowcaseThemes = {
   },
   spotlight: {
     accent: "#db2777",
+    accentInk: "#be185d",
     accentSoft: "rgba(219,39,119,0.14)",
     glow: "rgba(244,114,182,0.34)",
     shadow: "rgba(190,24,93,0.22)",
@@ -64,6 +71,7 @@ const templateShowcaseThemes = {
   },
   timeline: {
     accent: "#7c3aed",
+    accentInk: "#6d28d9",
     accentSoft: "rgba(124,58,237,0.14)",
     glow: "rgba(167,139,250,0.34)",
     shadow: "rgba(109,40,217,0.22)",
@@ -73,6 +81,7 @@ const templateShowcaseThemes = {
   },
   atelier: {
     accent: "#c2410c",
+    accentInk: "#9a3412",
     accentSoft: "rgba(194,65,12,0.14)",
     glow: "rgba(251,146,60,0.3)",
     shadow: "rgba(154,52,18,0.22)",
@@ -82,6 +91,7 @@ const templateShowcaseThemes = {
   },
   horizon: {
     accent: "#0284c7",
+    accentInk: "#0369a1",
     accentSoft: "rgba(2,132,199,0.14)",
     glow: "rgba(56,189,248,0.32)",
     shadow: "rgba(3,105,161,0.2)",
@@ -91,6 +101,7 @@ const templateShowcaseThemes = {
   },
   noir: {
     accent: "#f59e0b",
+    accentInk: "#b45309",
     accentSoft: "rgba(245,158,11,0.14)",
     glow: "rgba(252,211,77,0.34)",
     shadow: "rgba(245,158,11,0.18)",
@@ -100,6 +111,7 @@ const templateShowcaseThemes = {
   },
   mosaic: {
     accent: "#f97316",
+    accentInk: "#c2410c",
     accentSoft: "rgba(249,115,22,0.14)",
     glow: "rgba(253,186,116,0.32)",
     shadow: "rgba(194,65,12,0.2)",
@@ -109,6 +121,7 @@ const templateShowcaseThemes = {
   },
   ledger: {
     accent: "#059669",
+    accentInk: "#047857",
     accentSoft: "rgba(5,150,105,0.14)",
     glow: "rgba(52,211,153,0.32)",
     shadow: "rgba(4,120,87,0.2)",

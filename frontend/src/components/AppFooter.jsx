@@ -12,7 +12,7 @@ export default function AppFooter({ brandAsLink = true, showNavigation = true })
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className={`grid gap-8 lg:items-start ${showNavigation ? "lg:grid-cols-[1.2fr_0.8fr]" : "lg:grid-cols-[1.2fr_0.6fr]"}`}>
           <div>
-            <BrandWrapper className="flex flex-wrap items-center gap-3 text-xs font-semibold tracking-[0.18em] text-ink sm:text-sm sm:tracking-[0.24em]" {...brandProps}>
+            <BrandWrapper className="flex flex-wrap items-center gap-3 text-[13px] font-semibold tracking-[0.12em] text-ink sm:text-sm sm:tracking-[0.18em]" {...brandProps}>
               <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#0f172a_0%,#1f2937_100%)] text-white shadow-[0_16px_35px_rgba(15,23,42,0.16)]">
                 CV
               </span>
@@ -25,7 +25,7 @@ export default function AppFooter({ brandAsLink = true, showNavigation = true })
               {footer.pills.map((item) => (
                 <span
                   key={item}
-                  className="rounded-full border border-white/80 bg-[linear-gradient(145deg,rgba(255,255,255,0.96),rgba(248,250,252,0.88))] px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-700 shadow-[0_10px_24px_rgba(15,23,42,0.05)]"
+                  className="rounded-full border border-white/80 bg-[linear-gradient(145deg,rgba(255,255,255,0.96),rgba(248,250,252,0.88))] px-3 py-2 text-[13px] font-semibold uppercase tracking-[0.12em] text-slate-800 shadow-[0_10px_24px_rgba(15,23,42,0.05)]"
                 >
                   {item}
                 </span>
@@ -36,7 +36,7 @@ export default function AppFooter({ brandAsLink = true, showNavigation = true })
           <div className={`grid gap-6 ${showNavigation ? "sm:grid-cols-2" : ""}`}>
             {showNavigation ? (
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-600">{footer.navigationTitle}</p>
+                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-700">{footer.navigationTitle}</p>
                 <div className="mt-4 flex flex-col gap-3">
                   {footerNavItems.map((item) => (
                     <Link key={item.to} className="text-sm font-medium text-slate-700 transition hover:text-ink" to={item.to}>
@@ -47,7 +47,7 @@ export default function AppFooter({ brandAsLink = true, showNavigation = true })
               </div>
             ) : null}
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-600">{footer.experienceTitle}</p>
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-700">{footer.experienceTitle}</p>
               <div className="mt-4 space-y-3 text-sm leading-6 text-slate-600">
                 {footer.experienceItems.map((item) => (
                   <p key={item}>{item}</p>
@@ -57,7 +57,7 @@ export default function AppFooter({ brandAsLink = true, showNavigation = true })
           </div>
         </div>
 
-        <div className="mt-8 flex flex-col gap-3 border-t border-slate-200/80 pt-5 text-xs font-medium uppercase tracking-[0.14em] text-slate-600 sm:flex-row sm:items-center sm:justify-between sm:tracking-[0.18em]">
+        <div className="mt-8 flex flex-col gap-3 border-t border-slate-200/80 pt-5 text-sm font-medium uppercase tracking-[0.1em] text-slate-700 sm:flex-row sm:items-center sm:justify-between sm:tracking-[0.14em]">
           <p>{new Date().getFullYear()} {brand.name}</p>
           <p className="max-w-md leading-5 sm:text-right">{footer.tagline}</p>
         </div>

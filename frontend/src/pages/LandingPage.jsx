@@ -14,288 +14,9 @@ import { getTemplateShowcaseTheme } from "../utils/templateShowcase";
 function SectionHeader({ eyebrow, title, description }) {
   return (
     <div className="mb-6 w-full max-w-3xl sm:mb-8">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400 sm:text-xs sm:tracking-[0.3em]">{eyebrow}</p>
+      <p className="text-[13px] font-semibold uppercase tracking-[0.14em] text-slate-600 sm:text-sm sm:tracking-[0.18em]">{eyebrow}</p>
       <h2 className="mt-3 text-2xl font-semibold tracking-tight text-ink sm:text-3xl md:text-4xl">{title}</h2>
       <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600 sm:mt-4 sm:leading-7 md:text-base">{description}</p>
-    </div>
-  );
-}
-
-const showcaseIllustrations = {
-  modern: {
-    frame: "border-white/80 bg-[linear-gradient(145deg,#ecfeff_0%,#f8fafc_100%)]",
-    panel: "bg-white/72 border-white/70",
-    card: "bg-white text-slate-800 border-white/90",
-    accent: "bg-teal-500",
-    accentSoft: "bg-teal-100",
-    accentText: "text-teal-700",
-    line: "bg-slate-300",
-    mutedLine: "bg-slate-200",
-    pill: "bg-white/90 text-teal-700 border-white/80",
-  },
-  executive: {
-    frame: "border-white/80 bg-[linear-gradient(145deg,#eff6ff_0%,#f8fafc_100%)]",
-    panel: "bg-slate-900/92 border-slate-700/60",
-    card: "bg-white text-slate-900 border-white/90",
-    accent: "bg-blue-500",
-    accentSoft: "bg-blue-100",
-    accentText: "text-blue-700",
-    line: "bg-slate-300",
-    mutedLine: "bg-slate-200",
-    pill: "bg-white/90 text-blue-700 border-white/80",
-  },
-  editorial: {
-    frame: "border-white/80 bg-[linear-gradient(145deg,#fff7ed_0%,#fffdf8_100%)]",
-    panel: "bg-white/76 border-white/80",
-    card: "bg-white text-slate-900 border-white/90",
-    accent: "bg-orange-500",
-    accentSoft: "bg-orange-100",
-    accentText: "text-orange-700",
-    line: "bg-slate-300",
-    mutedLine: "bg-slate-200",
-    pill: "bg-white/90 text-orange-700 border-white/80",
-  },
-  noir: {
-    frame: "border-slate-700/70 bg-[linear-gradient(145deg,#111827_0%,#1f2937_100%)]",
-    panel: "bg-white/8 border-white/10",
-    card: "bg-slate-950/80 text-white border-white/10",
-    accent: "bg-amber-300",
-    accentSoft: "bg-white/10",
-    accentText: "text-amber-200",
-    line: "bg-white/55",
-    mutedLine: "bg-white/16",
-    pill: "bg-white/10 text-amber-100 border-white/10",
-  },
-};
-
-function IllustrationLine({ className }) {
-  return <div className={cn("h-2 rounded-full", className)} />;
-}
-
-function TemplateIllustration({ compact = false, templateId, templateName }) {
-  const theme = showcaseIllustrations[templateId] ?? showcaseIllustrations.modern;
-
-  return (
-    <div
-      className={cn(
-        "relative overflow-hidden rounded-[24px] border p-3 sm:rounded-[28px] sm:p-4",
-        compact && "rounded-[20px] p-2.5",
-        theme.frame,
-      )}
-    >
-      <div aria-hidden className={cn("absolute -right-8 -top-8 h-24 w-24 rounded-full blur-3xl", theme.accentSoft)} />
-      <div aria-hidden className={cn("absolute bottom-0 left-0 h-24 w-24 rounded-full blur-3xl", theme.accentSoft)} />
-
-      <div className="relative flex items-start justify-between gap-3">
-        <span className={cn("rounded-full border px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[0.22em] sm:px-3 sm:text-[10px] sm:tracking-[0.26em]", compact && "px-2 py-0.5 text-[8px]", theme.pill)}>
-          Ilustrativo
-        </span>
-        <div className={cn("h-8 w-8 rounded-2xl sm:h-10 sm:w-10", compact && "h-6 w-6 rounded-xl", theme.accentSoft)} />
-      </div>
-
-      {templateId === "modern" ? (
-        <div className={cn("relative mt-4 grid grid-cols-[0.92fr_1.08fr] gap-2.5 sm:mt-5 sm:gap-3", compact && "mt-3 gap-2")}>
-          <div className={cn("rounded-[20px] border p-3 sm:rounded-[22px] sm:p-4", compact && "rounded-[16px] p-2.5", theme.panel)}>
-            <div className={cn("space-y-3", compact && "space-y-2")}>
-              <div className="flex items-center gap-2">
-                <div className={cn("h-7 w-7 rounded-2xl sm:h-8 sm:w-8", compact && "h-5 w-5 rounded-xl", theme.accent)} />
-                <div className="min-w-0 flex-1">
-                  <IllustrationLine className={cn("w-16", theme.line)} />
-                  <IllustrationLine className={cn("mt-2 w-10", theme.mutedLine)} />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <div className={cn("h-8 rounded-2xl sm:h-9", compact && "h-6 rounded-[14px]", theme.mutedLine)} />
-                <div className={cn("h-8 rounded-2xl sm:h-9", compact && "h-6 rounded-[14px]", theme.mutedLine)} />
-                <div className={cn("h-16 rounded-[20px] sm:h-20 sm:rounded-[22px]", compact && "h-11 rounded-[16px]", theme.mutedLine)} />
-              </div>
-            </div>
-          </div>
-          <div className={cn("rounded-[20px] border p-3 sm:rounded-[22px] sm:p-4", compact && "rounded-[16px] p-2.5", theme.card)}>
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0 flex-1">
-                <IllustrationLine className={cn("w-24", templateId === "noir" ? theme.line : "bg-slate-900")} />
-                <IllustrationLine className={cn("mt-2 w-16", theme.mutedLine)} />
-              </div>
-              <div className={cn("h-8 w-8 rounded-full sm:h-9 sm:w-9", compact && "h-6 w-6", theme.accentSoft)} />
-            </div>
-            <div className={cn("mt-4 grid gap-3 sm:mt-5", compact && "mt-3 gap-2")}>
-              <div className={cn("rounded-[18px] bg-slate-50/90 p-3", compact && "rounded-[14px] p-2.5")}>
-                <IllustrationLine className={cn("w-16", theme.accent)} />
-                <IllustrationLine className={cn("mt-3", theme.mutedLine)} />
-                <IllustrationLine className={cn("mt-2 w-10/12", theme.mutedLine)} />
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <div className={cn("h-7 w-16 rounded-full", compact && "h-5 w-12", theme.accentSoft)} />
-                <div className={cn("h-7 w-20 rounded-full", compact && "h-5 w-14", theme.accentSoft)} />
-                <div className={cn("h-7 w-14 rounded-full", compact && "h-5 w-10", theme.accentSoft)} />
-              </div>
-            </div>
-          </div>
-        </div>
-      ) : null}
-
-      {templateId === "executive" ? (
-        <div className={cn("relative mt-4 space-y-2.5 sm:mt-5 sm:space-y-3", compact && "mt-3 space-y-2")}>
-          <div className={cn("rounded-[22px] border p-3 text-white sm:rounded-[24px] sm:p-4", compact && "rounded-[16px] p-2.5", theme.panel)}>
-            <div className="flex items-center justify-between gap-3">
-              <div className="min-w-0 flex-1">
-                <IllustrationLine className="w-24 bg-white/80" />
-                <IllustrationLine className="mt-2 w-14 bg-white/30" />
-              </div>
-              <div className={cn("h-8 w-8 rounded-2xl sm:h-10 sm:w-10", compact && "h-6 w-6 rounded-xl", theme.accent)} />
-            </div>
-          </div>
-          <div className={cn("grid gap-2.5 sm:grid-cols-[1.05fr_0.95fr] sm:gap-3", compact && "gap-2")}>
-            <div className={cn("rounded-[18px] border p-3 sm:rounded-[20px] sm:p-4", compact && "rounded-[15px] p-2.5", theme.card)}>
-              <IllustrationLine className="w-16 bg-slate-900" />
-              <IllustrationLine className={cn("mt-4", theme.mutedLine)} />
-              <IllustrationLine className={cn("mt-2 w-10/12", theme.mutedLine)} />
-              <IllustrationLine className={cn("mt-2 w-8/12", theme.mutedLine)} />
-            </div>
-            <div className={cn("space-y-3", compact && "space-y-2")}>
-              <div className={cn("rounded-[18px] border p-3 sm:rounded-[20px] sm:p-4", compact && "rounded-[15px] p-2.5", theme.card)}>
-                <IllustrationLine className={cn("w-12", theme.accent)} />
-                <IllustrationLine className={cn("mt-3", theme.mutedLine)} />
-                <IllustrationLine className={cn("mt-2 w-9/12", theme.mutedLine)} />
-              </div>
-              <div className={cn("rounded-[18px] border p-3 sm:rounded-[20px] sm:p-4", compact && "rounded-[15px] p-2.5", theme.card)}>
-                <div className="flex gap-2">
-                  <div className={cn("h-8 w-8 rounded-full", compact && "h-6 w-6", theme.accentSoft)} />
-                  <div className="min-w-0 flex-1">
-                    <IllustrationLine className={cn("w-20", theme.line)} />
-                    <IllustrationLine className={cn("mt-2 w-14", theme.mutedLine)} />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      ) : null}
-
-      {templateId === "editorial" ? (
-        <div className={cn("relative mt-4 grid grid-cols-[0.74fr_1.26fr] gap-2.5 sm:mt-5 sm:gap-3", compact && "mt-3 gap-2")}>
-          <div className={cn("overflow-hidden rounded-[22px] border border-white/70 bg-white/70 sm:rounded-[24px]", compact && "rounded-[16px]")}>
-            <div className={cn("h-full min-h-[200px] p-3 sm:min-h-[240px] sm:p-4", compact && "min-h-[132px] p-2.5", theme.panel)}>
-              <div className={cn("h-full rounded-[18px] bg-[linear-gradient(180deg,rgba(251,146,60,0.18),rgba(255,255,255,0.16))]")} />
-            </div>
-          </div>
-            <div className={cn("space-y-3", compact && "space-y-2")}>
-            <div className={cn("rounded-[18px] border p-3 sm:rounded-[20px] sm:p-4", compact && "rounded-[15px] p-2.5", theme.card)}>
-              <div className={cn("h-1.5 w-14 rounded-full", theme.accent)} />
-              <div className="mt-4 space-y-2">
-                <IllustrationLine className={cn("h-3 w-28", templateId === "noir" ? theme.line : "bg-slate-900")} />
-                <IllustrationLine className={cn("w-10/12", theme.mutedLine)} />
-                <IllustrationLine className={cn("w-8/12", theme.mutedLine)} />
-              </div>
-            </div>
-            <div className={cn("rounded-[18px] border p-3 sm:rounded-[20px] sm:p-4", compact && "rounded-[15px] p-2.5", theme.card)}>
-              <IllustrationLine className={cn("w-16", theme.accent)} />
-              <div className={cn("mt-4 grid grid-cols-2 gap-3", compact && "mt-3 gap-2")}>
-                <div className={cn("rounded-[16px] bg-slate-50/90 p-3", compact && "rounded-[12px] p-2")}>
-                  <IllustrationLine className={cn("w-10", theme.mutedLine)} />
-                  <IllustrationLine className={cn("mt-2 w-8", theme.mutedLine)} />
-                </div>
-                <div className={cn("rounded-[16px] bg-slate-50/90 p-3", compact && "rounded-[12px] p-2")}>
-                  <IllustrationLine className={cn("w-10", theme.mutedLine)} />
-                  <IllustrationLine className={cn("mt-2 w-8", theme.mutedLine)} />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      ) : null}
-
-      {templateId === "noir" ? (
-        <div className={cn("relative mt-4 space-y-2.5 text-white sm:mt-5 sm:space-y-3", compact && "mt-3 space-y-2")}>
-          <div className={cn("rounded-[22px] border p-3 sm:rounded-[24px] sm:p-4", compact && "rounded-[16px] p-2.5", theme.panel)}>
-            <div className="flex items-center justify-between gap-3">
-              <div className="min-w-0 flex-1">
-                <IllustrationLine className={cn("w-20", theme.line)} />
-                <IllustrationLine className={cn("mt-2 w-12", theme.mutedLine)} />
-              </div>
-              <div className={cn("h-8 w-8 rounded-full sm:h-10 sm:w-10", compact && "h-6 w-6", theme.accent)} />
-            </div>
-          </div>
-          <div className={cn("grid gap-2.5 sm:grid-cols-[0.88fr_1.12fr] sm:gap-3", compact && "gap-2")}>
-            <div className={cn("rounded-[18px] border p-3 sm:rounded-[20px] sm:p-4", compact && "rounded-[15px] p-2.5", theme.card)}>
-              <div className="flex flex-wrap gap-2">
-                <div className={cn("h-7 w-14 rounded-full", compact && "h-5 w-10", theme.accentSoft)} />
-                <div className={cn("h-7 w-[4.5rem] rounded-full", compact && "h-5 w-12", theme.accentSoft)} />
-              </div>
-              <IllustrationLine className={cn("mt-5", theme.mutedLine)} />
-              <IllustrationLine className={cn("mt-2 w-10/12", theme.mutedLine)} />
-              <IllustrationLine className={cn("mt-2 w-8/12", theme.mutedLine)} />
-            </div>
-            <div className={cn("rounded-[18px] border p-3 sm:rounded-[20px] sm:p-4", compact && "rounded-[15px] p-2.5", theme.panel)}>
-              <div className={cn("space-y-3", compact && "space-y-2")}>
-                <div className={cn("h-16 rounded-[18px] sm:h-20", compact && "h-10 rounded-[12px]", theme.accentSoft)} />
-                <div className={cn("grid grid-cols-2 gap-3", compact && "gap-2")}>
-                  <div className={cn("h-16 rounded-[18px] sm:h-20", compact && "h-10 rounded-[12px]", theme.mutedLine)} />
-                  <div className={cn("h-16 rounded-[18px] sm:h-20", compact && "h-10 rounded-[12px]", theme.mutedLine)} />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      ) : null}
-
-      <div className={cn("relative mt-4 flex items-center justify-between gap-3", compact && "mt-3")}>
-        <div className="min-w-0">
-          <p className={cn("text-xs font-semibold uppercase tracking-[0.24em]", theme.accentText)}>Conceito</p>
-          <p className={cn("mt-1 text-sm font-medium", compact && "text-[12px] leading-4", templateId === "noir" ? "text-white/80" : "text-slate-600")}>
-            Direcao visual inspirada no template {templateName}.
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <div className={cn("h-2.5 w-2.5 rounded-full", theme.accent)} />
-          <div className={cn("h-2.5 w-2.5 rounded-full", theme.mutedLine)} />
-          <div className={cn("h-2.5 w-2.5 rounded-full", theme.mutedLine)} />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function TemplateShowcaseCard({ className, compact = false, template, index }) {
-  return (
-    <Panel className={cn("h-full p-0", className)}>
-      <div className={cn("rounded-[24px] bg-[linear-gradient(145deg,#ffffff_0%,#f8fafc_100%)] p-4 sm:rounded-[26px] sm:p-5", compact && "p-3.5")}>
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400 sm:text-xs sm:tracking-[0.3em]">Template {String(index + 1).padStart(2, "0")}</p>
-          <span className="self-start rounded-full bg-slate-100 px-3 py-1 text-[11px] font-semibold text-slate-500">Demonstrativo</span>
-        </div>
-        <h3 className={cn("mt-4 text-xl font-semibold tracking-tight text-ink sm:text-[1.35rem]", compact && "mt-3 text-lg")}>{template.name}</h3>
-        <p className={cn("mt-2.5 text-sm leading-6 text-slate-600", compact && "mt-2 text-[12px] leading-4")}>{template.description}</p>
-        <div className={cn("mt-4", compact && "mt-3")}>
-          <TemplateIllustration compact={compact} templateId={template.id} templateName={template.name} />
-        </div>
-      </div>
-    </Panel>
-  );
-}
-
-function TemplateCarouselMock({ templates }) {
-  const leftTemplate = templates[0];
-  const centerTemplate = templates[1] ?? templates[0];
-  const rightTemplate = templates[2] ?? templates[templates.length - 1];
-
-  return (
-    <div className="relative px-2 pb-2 pt-1">
-      <div aria-hidden className="pointer-events-none absolute left-0 top-10 z-0 w-[32%] -translate-x-[18%] scale-[0.7] opacity-40 blur-[0.4px]">
-        <TemplateShowcaseCard compact index={1} template={leftTemplate} />
-      </div>
-      <div aria-hidden className="pointer-events-none absolute right-0 top-10 z-0 w-[32%] translate-x-[18%] scale-[0.7] opacity-40 blur-[0.4px]">
-        <TemplateShowcaseCard compact index={3} template={rightTemplate} />
-      </div>
-      <div className="relative z-10 mx-auto w-[68%] max-w-[14.5rem]">
-        <TemplateShowcaseCard compact index={2} template={centerTemplate} />
-      </div>
-      <div className="mt-3 flex items-center justify-center gap-2">
-        <div className="h-2.5 w-2.5 rounded-full bg-slate-300" />
-        <div className="h-2.5 w-8 rounded-full bg-slate-900" />
-        <div className="h-2.5 w-2.5 rounded-full bg-slate-300" />
-      </div>
     </div>
   );
 }
@@ -400,7 +121,7 @@ export default function LandingPage() {
       <header ref={headerRef} className="sticky top-0 z-30 border-b border-white/70 bg-white/72 backdrop-blur-2xl">
         <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between gap-4">
-            <Link className="flex items-center gap-3 text-xs font-semibold tracking-[0.18em] sm:text-sm sm:tracking-[0.24em]" to={appRoutes.home}>
+            <Link className="flex items-center gap-3 text-[13px] font-semibold tracking-[0.12em] sm:text-sm sm:tracking-[0.18em]" to={appRoutes.home}>
               <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#0f172a_0%,#1f2937_100%)] text-white shadow-[0_16px_35px_rgba(15,23,42,0.20)]">
                 CV
               </span>
@@ -451,7 +172,7 @@ export default function LandingPage() {
               id="landing-mobile-menu"
             >
               <div className="rounded-[22px] border border-white/80 bg-[linear-gradient(145deg,rgba(248,250,252,0.94),rgba(255,255,255,0.98))] px-4 py-3">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.26em] text-slate-500">Menu</p>
+                <p className="text-[13px] font-semibold uppercase tracking-[0.14em] text-slate-700">Menu</p>
                 <p className="mt-1 text-sm leading-6 text-slate-700">Navegue pela home ou pule direto para o seletor de templates.</p>
               </div>
 
@@ -476,7 +197,7 @@ export default function LandingPage() {
         <section className="mx-auto max-w-7xl px-4 pb-12 pt-10 sm:px-6 sm:pb-14 sm:pt-14 lg:px-8 lg:pb-16 lg:pt-16" id="inicio">
           <div className="grid gap-10 sm:gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(360px,520px)] lg:items-center">
             <div className="max-w-5xl">
-              <div className="inline-flex max-w-full flex-wrap items-center gap-2 rounded-full border border-white/80 bg-white/80 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 shadow-soft sm:text-xs sm:tracking-[0.28em]">
+              <div className="inline-flex max-w-full flex-wrap items-center gap-2 rounded-full border border-white/80 bg-white/80 px-4 py-2 text-[13px] font-semibold uppercase tracking-[0.12em] text-slate-700 shadow-soft sm:text-sm sm:tracking-[0.16em]">
                 <span className="h-2 w-2 rounded-full bg-brand-500" />
                 {hero.eyebrow}
               </div>
@@ -559,10 +280,10 @@ export default function LandingPage() {
                       </div>
                     </div>
                     <div className="mt-5 flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
-                      <h3 className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-700">Selecionado agora</h3>
+                      <h3 className="text-[13px] font-semibold uppercase tracking-[0.14em] text-slate-700">Selecionado agora</h3>
                       <span
-                        className="rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em]"
-                        style={{ backgroundColor: selectedTheme.accentSoft, color: selectedTheme.accent }}
+                        className="rounded-full px-3 py-1.5 text-[13px] font-semibold uppercase tracking-[0.12em]"
+                        style={{ backgroundColor: selectedTheme.accentSoft, color: selectedTheme.accentInk }}
                       >
                         {selectedTheme.label}
                       </span>
@@ -575,8 +296,8 @@ export default function LandingPage() {
                     className="rounded-[20px] border border-ink/10 p-4 text-white shadow-[0_24px_60px_rgba(15,23,42,0.2)] sm:rounded-[24px] sm:p-5"
                     style={{ background: selectedTheme.surface }}
                   >
-                    <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/60">Proximo passo</p>
-                    <p className="mt-3 text-sm leading-6 text-white/82">
+                    <p className="text-[13px] font-semibold uppercase tracking-[0.14em] text-white">Proximo passo</p>
+                    <p className="mt-3 text-sm leading-6 text-white">
                       Abra o editor com {selectedTemplateMeta?.name} e comece a preencher o curriculo imediatamente.
                     </p>
                     <div className="mt-5">
@@ -593,7 +314,7 @@ export default function LandingPage() {
           <div className="mt-10 grid gap-4 md:mt-12 md:grid-cols-3">
             {quickProofs.map((item) => (
               <Panel key={item.title} className="p-5">
-                <p className="text-xs font-semibold uppercase tracking-[0.26em] text-slate-400">{item.title}</p>
+                <p className="text-[13px] font-semibold uppercase tracking-[0.14em] text-slate-600">{item.title}</p>
                 <p className="mt-3 text-sm leading-6 text-slate-600">{item.description}</p>
               </Panel>
             ))}
@@ -611,38 +332,11 @@ export default function LandingPage() {
             <div className="grid gap-6 lg:grid-cols-3">
               {benefits.map((benefit) => (
                 <Panel key={benefit.title}>
-                  <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-400">{benefit.eyebrow}</p>
+                  <p className="text-[13px] font-semibold uppercase tracking-[0.14em] text-slate-600">{benefit.eyebrow}</p>
                   <h3 className="mt-3 text-2xl font-semibold tracking-tight text-ink">{benefit.title}</h3>
                   <p className="mt-3 text-sm leading-7 text-slate-600">{benefit.description}</p>
                 </Panel>
               ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="border-t border-slate-200/80">
-          <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
-            <div className="overflow-hidden rounded-[28px] bg-[linear-gradient(135deg,#0f172a_0%,#1f2937_48%,#0f766e_100%)] px-5 py-8 text-white shadow-float sm:rounded-[38px] sm:px-8 sm:py-12">
-              <div className="grid gap-6 sm:gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
-                <div className="max-w-3xl">
-                  <p className="text-sm uppercase tracking-[0.34em] text-white/50">{finalCta.eyebrow}</p>
-                  <h2 className="mt-4 font-display text-3xl tracking-tight sm:text-4xl md:text-5xl">
-                    {finalCta.title}
-                  </h2>
-                  <p className="mt-5 max-w-2xl text-sm leading-7 text-white/72">
-                    {finalCta.description}
-                  </p>
-                </div>
-                <Button
-                  as="a"
-                  className="w-full px-7 py-4 sm:w-auto"
-                  href="#template-selector"
-                  onClick={(event) => handleSectionLinkClick(event, "#template-selector")}
-                  variant="secondary"
-                >
-                  {finalCta.cta}
-                </Button>
-              </div>
             </div>
           </div>
         </section>
@@ -653,34 +347,55 @@ export default function LandingPage() {
         >
           <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
             <Panel className="overflow-hidden border-white/90 bg-[linear-gradient(145deg,rgba(255,255,255,0.98),rgba(248,250,252,0.92))] p-6 shadow-[0_24px_60px_rgba(15,23,42,0.08)] sm:p-8">
-              <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
-                <div className="max-w-3xl">
-                  <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-400">Painel</p>
-                  <h2 className="mt-3 text-3xl font-semibold tracking-tight text-ink sm:text-4xl">Abra seu workspace local antes de sair da home.</h2>
-                  <p className="mt-4 text-sm leading-7 text-slate-600 sm:text-base">
-                    Entre no painel para retomar rascunhos, revisar curriculos salvos e acompanhar suas exportacoes recentes sem perder o fluxo.
-                  </p>
-                  <div className="mt-5 flex flex-wrap gap-2">
-                    {["Rascunhos locais", "Curriculos salvos", "PDFs recentes"].map((item) => (
-                      <span
-                        key={item}
-                        className="rounded-full border border-white/80 bg-white px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600 shadow-[0_10px_24px_rgba(15,23,42,0.05)]"
-                      >
-                        {item}
-                      </span>
-                    ))}
+              <div className="space-y-8">
+                <div className="max-w-4xl">
+                  <p className="text-[13px] font-semibold uppercase tracking-[0.14em] text-slate-600">{finalCta.eyebrow}</p>
+                  <h2 className="mt-3 font-display text-3xl tracking-tight text-ink sm:text-4xl md:text-5xl">{finalCta.title}</h2>
+                  <p className="mt-4 max-w-3xl text-base leading-7 text-slate-600">{finalCta.description}</p>
+                </div>
+
+                <div className="h-px bg-[linear-gradient(90deg,rgba(148,163,184,0.12),rgba(148,163,184,0.5),rgba(148,163,184,0.12))]" />
+
+                <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+                  <div className="max-w-3xl">
+                    <p className="text-[13px] font-semibold uppercase tracking-[0.14em] text-slate-600">Painel</p>
+                    <h3 className="mt-3 text-3xl font-semibold tracking-tight text-ink sm:text-4xl">Abra seu workspace local antes de sair da home.</h3>
+                    <p className="mt-4 text-sm leading-7 text-slate-600 sm:text-base">
+                      Entre no painel para retomar rascunhos, revisar curriculos salvos e acompanhar suas exportacoes recentes sem perder o fluxo.
+                    </p>
+                    <div className="mt-5 flex flex-wrap gap-2">
+                      {["Rascunhos locais", "Curriculos salvos", "PDFs recentes"].map((item) => (
+                        <span
+                          key={item}
+                          className="rounded-full border border-white/80 bg-white px-3 py-2 text-[13px] font-semibold uppercase tracking-[0.12em] text-slate-700 shadow-[0_10px_24px_rgba(15,23,42,0.05)]"
+                        >
+                          {item}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row lg:flex-col">
+                    <Button as={Link} className="w-full px-7 py-4 sm:w-auto" to={appRoutes.dashboard} variant="primary">
+                      Abrir painel
+                    </Button>
+                    <Button
+                      as="a"
+                      className="w-full px-7 py-4 sm:w-auto"
+                      href="#template-selector"
+                      onClick={(event) => handleSectionLinkClick(event, "#template-selector")}
+                      variant="secondary"
+                    >
+                      {finalCta.cta}
+                    </Button>
                   </div>
                 </div>
-                <Button as={Link} className="w-full px-7 py-4 sm:w-auto" to={appRoutes.dashboard} variant="primary">
-                  Abrir painel
-                </Button>
               </div>
             </Panel>
           </div>
         </section>
       </main>
 
-      <AppFooter />
+      <AppFooter brandAsLink={false} />
     </div>
   );
 }

@@ -64,10 +64,10 @@ function TemplatePreview({ isActive, template, mode, theme }) {
           <div className="absolute left-3 top-3 flex items-center gap-2">
             <span
               className={cn(
-                "rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] backdrop-blur",
-                isActive ? "border-white/16 bg-black/20 text-white" : "border-white/80 bg-white/88 text-slate-700",
+                "rounded-full border px-3 py-1.5 text-[13px] font-semibold uppercase tracking-[0.12em] backdrop-blur",
+                isActive ? "border-white/20 bg-black/55 text-white" : "border-white/80 bg-white/92 text-slate-800",
               )}
-              style={!isActive ? { color: theme.accent } : undefined}
+              style={!isActive ? { color: theme.accentInk } : undefined}
             >
               {theme.label}
             </span>
@@ -201,7 +201,7 @@ export default function TemplatePicker({ value, onChange, mode = "list" }) {
               {template.name}
             </p>
             <p
-              className={cn("mt-1 text-xs leading-5", isActive ? "text-white/90" : "text-slate-700")}
+              className={cn("mt-1 text-[13px] leading-5", isActive ? "text-white" : "text-slate-700")}
               id={descriptionId}
             >
               {template.description}
@@ -210,14 +210,14 @@ export default function TemplatePicker({ value, onChange, mode = "list" }) {
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 <span
                   className={cn(
-                    "rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em]",
-                    isActive ? "bg-white/14 text-white" : "bg-slate-100",
+                    "rounded-full px-3 py-1.5 text-[13px] font-semibold uppercase tracking-[0.12em]",
+                    isActive ? "bg-white/18 text-white" : "bg-slate-100 text-slate-800",
                   )}
-                  style={!isActive ? { color: templateTheme.accent, backgroundColor: templateTheme.accentSoft } : undefined}
+                  style={!isActive ? { color: templateTheme.accentInk, backgroundColor: templateTheme.accentSoft } : undefined}
                 >
                   {templateTheme.label}
                 </span>
-                <span className={cn("text-[11px] font-medium", isActive ? "text-white/70" : "text-slate-500")}>
+                <span className={cn("text-[13px] font-semibold", isActive ? "text-white" : "text-slate-700")}>
                   {String(templateOptions.findIndex((item) => item.id === template.id) + 1).padStart(2, "0")}
                 </span>
               </div>
@@ -226,10 +226,10 @@ export default function TemplatePicker({ value, onChange, mode = "list" }) {
           <span
             aria-hidden="true"
             className={cn(
-              "rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] transition duration-300",
+              "rounded-full px-3 py-1.5 text-[13px] font-semibold uppercase tracking-[0.1em] transition duration-300",
               isActive
-                ? "bg-white/18 text-white"
-                : "bg-slate-100 text-slate-700 group-hover:bg-brand-50 group-hover:text-brand-700",
+                ? "bg-white/20 text-white"
+                : "bg-slate-100 text-slate-800 group-hover:bg-brand-50 group-hover:text-brand-700",
             )}
           >
             {isActive ? "Selecionado" : "Selecionar"}
@@ -241,15 +241,15 @@ export default function TemplatePicker({ value, onChange, mode = "list" }) {
         <div
           aria-hidden="true"
           className={cn(
-            "mt-4 flex flex-col items-start gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] sm:flex-row sm:items-center sm:justify-between sm:gap-3",
-            isActive ? "text-white/78" : "text-slate-500 group-hover:text-slate-700",
+            "mt-4 flex flex-col items-start gap-2 text-[13px] font-semibold uppercase tracking-[0.12em] sm:flex-row sm:items-center sm:justify-between sm:gap-3",
+            isActive ? "text-white" : "text-slate-700 group-hover:text-slate-900",
           )}
         >
           <span>{isActive ? "Pronto para o editor" : isCarousel ? "Clique ou deslize" : "Hover para comparar"}</span>
           <span
             className={cn(
-              "rounded-full px-2.5 py-1 transition duration-300",
-              isActive ? "bg-white/14 text-white" : "bg-slate-100 group-hover:bg-slate-200",
+              "rounded-full px-3 py-1.5 transition duration-300",
+              isActive ? "bg-white/18 text-white" : "bg-slate-100 text-slate-700 group-hover:bg-slate-200",
             )}
             >
               {isActive ? "Ativo agora" : "Preview real"}
@@ -289,16 +289,16 @@ export default function TemplatePicker({ value, onChange, mode = "list" }) {
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="min-w-0 max-w-2xl">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-700">
+                  <span className="rounded-full bg-slate-100 px-3 py-1.5 text-[13px] font-semibold uppercase tracking-[0.12em] text-slate-800">
                     Carrossel de templates
                   </span>
                   <span
-                    className="rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em]"
-                    style={{ backgroundColor: selectedTheme.accentSoft, color: selectedTheme.accent }}
+                    className="rounded-full px-3 py-1.5 text-[13px] font-semibold uppercase tracking-[0.12em]"
+                    style={{ backgroundColor: selectedTheme.accentSoft, color: selectedTheme.accentInk }}
                   >
                     {selectedTheme.label}
                   </span>
-                  <span className="rounded-full bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500 shadow-[0_10px_18px_rgba(15,23,42,0.05)]">
+                  <span className="rounded-full bg-white px-3 py-1.5 text-[13px] font-semibold uppercase tracking-[0.12em] text-slate-700 shadow-[0_10px_18px_rgba(15,23,42,0.05)]">
                     {activeIndex + 1} de {templateOptions.length}
                   </span>
                 </div>
@@ -347,10 +347,10 @@ export default function TemplatePicker({ value, onChange, mode = "list" }) {
                   <button
                     aria-label={`Selecionar template ${template.name}`}
                     className={cn(
-                      "rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] transition",
+                      "rounded-full border px-3 py-1.5 text-[13px] font-semibold uppercase tracking-[0.1em] transition",
                       isActive
                         ? "border-transparent text-white shadow-[0_14px_26px_rgba(15,23,42,0.12)]"
-                        : "border-white/80 bg-white/80 text-slate-500 hover:border-slate-300 hover:text-slate-700",
+                        : "border-white/80 bg-white/80 text-slate-700 hover:border-slate-300 hover:text-slate-900",
                     )}
                     key={template.id}
                     onClick={() => onChange(template.id)}
@@ -364,7 +364,7 @@ export default function TemplatePicker({ value, onChange, mode = "list" }) {
             </div>
 
             <div className="order-1 flex w-full items-center justify-between gap-3 sm:order-2 sm:w-auto sm:justify-end">
-              <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500 sm:hidden">
+              <span className="text-[13px] font-semibold uppercase tracking-[0.12em] text-slate-700 sm:hidden">
                 Deslize ou use as setas
               </span>
               <button

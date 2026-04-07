@@ -15,10 +15,6 @@ export function getPreviewRoute(id) {
 
 export const footerNavItems = [
   {
-    to: appRoutes.home,
-    label: "Principal",
-  },
-  {
     to: appRoutes.templates,
     label: "Escolher template",
   },
