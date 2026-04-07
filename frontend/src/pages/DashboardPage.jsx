@@ -174,10 +174,10 @@ function ActionCard({ as: Component = Link, icon, subtitle, title, tone = "secon
         <IconBadge name={icon} tone={tone === "accent" ? "teal" : "slate"} />
         <div className="text-left">
           <p className="text-sm font-semibold text-ink">{title}</p>
-          <p className="mt-1 text-xs leading-5 text-slate-500">{subtitle}</p>
+          <p className="mt-1 text-xs leading-5 text-slate-600">{subtitle}</p>
         </div>
       </div>
-      <Icon className="h-4 w-4 text-slate-400" name="play" />
+      <Icon className="h-4 w-4 text-slate-500" name="play" />
     </Component>
   );
 }
@@ -239,6 +239,7 @@ export default function DashboardPage() {
       : "Gerencie versoes, adapte por vaga e exporte em PDF com rapidez.";
   const continueTarget = latestResume ? getEditorRoute(latestResume.id) : draftInfo ? appRoutes.editorNew : appRoutes.templates;
   const continueLabel = latestResume ? "Continuar ultima edicao" : draftInfo ? "Retomar rascunho local" : "Abrir editor";
+  const hasDistinctContinueAction = continueTarget !== appRoutes.templates;
   const focusTemplateName = latestResume ? templateNameMap[latestResume.template] ?? latestResume.template : "Moderno";
   const latestRole = latestResume?.data.personal?.role || "Defina um cargo para dar mais contexto visual";
   const storageMeta = useMemo(() => buildResumeStorageMeta(resumes), [resumes]);
@@ -317,20 +318,12 @@ export default function DashboardPage() {
   }
 
   return (
-    <AppLayout
-      actions={
-        <Button as={Link} to={appRoutes.templates} variant="primary">
-          Escolher template
-        </Button>
-      }
-      subtitle="Gerencie versoes, adapte por vaga e exporte em PDF com rapidez."
-      title="Dashboard"
-    >
+    <AppLayout footerProps={{ showNavigation: false }} subtitle="Gerencie versoes, adapte por vaga e exporte em PDF com rapidez." title="Dashboard">
       <div className="mb-6 grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_300px] 2xl:grid-cols-[minmax(0,1.38fr)_340px]">
         <Panel className="overflow-hidden border-white/90 bg-[linear-gradient(145deg,rgba(255,255,255,0.99),rgba(248,250,252,0.92))] p-7 shadow-[0_24px_60px_rgba(15,23,42,0.08)] xl:p-8">
           <div className="grid gap-8 2xl:grid-cols-[minmax(0,1.28fr)_280px]">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">Painel vivo</p>
+              <p className="text-xs font-medium uppercase tracking-[0.24em] text-slate-600">Painel vivo</p>
               <h2 className="mt-3 max-w-xl text-[2.45rem] font-medium leading-[1.08] tracking-[-0.03em] text-slate-900 md:text-[2.8rem]">
                 {heroTitle}
               </h2>
@@ -340,9 +333,11 @@ export default function DashboardPage() {
                 <Button as={Link} to={appRoutes.templates} variant="accent">
                   Escolher template
                 </Button>
-                <Button as={Link} to={continueTarget} variant="secondary">
-                  {continueLabel}
-                </Button>
+                {hasDistinctContinueAction ? (
+                  <Button as={Link} to={continueTarget} variant="secondary">
+                    {continueLabel}
+                  </Button>
+                ) : null}
               </div>
 
               {storageMeta.limitReached ? (
@@ -372,12 +367,12 @@ export default function DashboardPage() {
                   >
                     <div className="flex items-center justify-between gap-3">
                       <IconBadge name={item.icon} tone={item.tone} />
-                      <span className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                      <span className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-700">
                         {item.kicker}
                       </span>
                     </div>
                     <p className="mt-5 text-3xl font-semibold tracking-tight text-ink">{item.value}</p>
-                    <p className="mt-2 text-[11px] font-semibold uppercase leading-5 tracking-[0.14em] text-slate-400">{item.label}</p>
+                    <h3 className="mt-2 text-sm font-semibold tracking-tight text-slate-800">{item.label}</h3>
                     <p className="mt-3 text-sm leading-6 text-slate-600">{item.detail}</p>
                   </div>
                 ))}
@@ -386,8 +381,8 @@ export default function DashboardPage() {
 
             <div className="rounded-[30px] border border-slate-900/85 bg-[linear-gradient(160deg,#0f172a_0%,#1e293b_44%,#0f766e_100%)] p-6 text-white shadow-[0_28px_60px_rgba(15,23,42,0.24)] xl:p-7">
               <div className="flex items-center justify-between gap-3">
-                <p className="text-xs font-semibold uppercase tracking-[0.28em] text-white/55">Foco atual</p>
-                <span className="rounded-full border border-white/12 bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/74">
+                <p className="text-xs font-medium uppercase tracking-[0.22em] text-white/78">Foco atual</p>
+                <span className="rounded-full border border-white/12 bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/88">
                   {latestResume ? "Ativo" : "Vazio"}
                 </span>
               </div>
@@ -403,15 +398,15 @@ export default function DashboardPage() {
 
               <div className="mt-6 grid gap-3">
                 <div className="rounded-[22px] border border-white/12 bg-white/10 px-4 py-4">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/48">Template atual</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/80">Template atual</p>
                   <p className="mt-2 text-base font-semibold text-white">{focusTemplateName}</p>
                 </div>
                 <div className="rounded-[22px] border border-white/12 bg-white/10 px-4 py-4">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/48">Contexto</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/80">Contexto</p>
                   <p className="mt-2 text-base font-semibold text-white">{latestRole}</p>
                 </div>
                 <div className="rounded-[22px] border border-white/12 bg-white/10 px-4 py-4">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/48">Ultima atividade</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/80">Ultima atividade</p>
                   <p className="mt-2 text-base font-semibold text-white">
                     {latestResume ? formatDashboardMoment(latestResume.updatedAt) : "Sem atividade"}
                   </p>
@@ -419,9 +414,11 @@ export default function DashboardPage() {
               </div>
 
               <div className="mt-6 flex flex-wrap gap-3">
-                <Button as={Link} className="px-5 py-3" to={continueTarget} variant="secondary">
-                  {latestResume ? "Continuar edicao" : "Escolher template"}
-                </Button>
+                {hasDistinctContinueAction ? (
+                  <Button as={Link} className="px-5 py-3" to={continueTarget} variant="secondary">
+                    {latestResume ? "Continuar edicao" : continueLabel}
+                  </Button>
+                ) : null}
                 {latestResume ? (
                   <Button as={Link} className="px-5 py-3 text-white hover:bg-white/10 hover:text-white" to={getPreviewRoute(latestResume.id)} variant="ghost">
                     Preview final
@@ -442,13 +439,19 @@ export default function DashboardPage() {
               to={appRoutes.templates}
               tone="accent"
             />
-            <ActionCard
-              as={Link}
-              icon="document"
-              subtitle={latestResume ? "Volte direto para a ultima versao atualizada." : "Abra o editor e recupere o rascunho local automaticamente."}
-              title={continueLabel}
-              to={continueTarget}
-            />
+            {hasDistinctContinueAction ? (
+              <ActionCard
+                as={Link}
+                icon="document"
+                subtitle={latestResume ? "Volte direto para a ultima versao atualizada." : "Abra o editor e recupere o rascunho local automaticamente."}
+                title={continueLabel}
+                to={continueTarget}
+              />
+            ) : (
+              <div className="rounded-[24px] border border-dashed border-slate-300 bg-slate-50/80 px-4 py-4 text-sm leading-6 text-slate-700">
+                Escolha um template para liberar retomada, preview e duplicacao direta pelo dashboard.
+              </div>
+            )}
             {latestResume ? (
               <ActionCard
                 as="button"
@@ -458,15 +461,7 @@ export default function DashboardPage() {
                 title="Duplicar versao base"
                 type="button"
               />
-            ) : (
-              <ActionCard
-                as={Link}
-                icon="layers"
-                subtitle="Volte para a home e defina o template da nova versao."
-                title="Escolher template"
-                to={appRoutes.templates}
-              />
-            )}
+            ) : null}
           </div>
 
           <div className="mt-5 grid gap-3 sm:grid-cols-2">
@@ -474,7 +469,7 @@ export default function DashboardPage() {
               <div className="flex items-center gap-3">
                 <IconBadge name="draft" tone="slate" />
                 <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Rascunho local</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-600">Rascunho local</p>
                   <p className="mt-1 text-sm font-semibold text-ink">{draftInfo ? "Pronto para retomar" : "Nenhum rascunho ativo"}</p>
                 </div>
               </div>
@@ -487,7 +482,7 @@ export default function DashboardPage() {
               <div className="flex items-center gap-3">
                 <IconBadge name="layers" tone="amber" />
                 <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-amber-700/70">Template dominante</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-800">Template dominante</p>
                   <p className="mt-1 text-sm font-semibold text-amber-900">
                     {mostUsedTemplate ? mostUsedTemplate.name : "Sem historico ainda"}
                   </p>
@@ -504,7 +499,7 @@ export default function DashboardPage() {
           <div className="mt-5 rounded-[24px] border border-slate-200 bg-[linear-gradient(180deg,rgba(248,250,252,0.95),rgba(255,255,255,0.86))] p-4">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Ultimos PDFs</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-600">Ultimos PDFs</p>
                 <p className="mt-1 text-sm font-semibold text-ink">
                   {exportSummary.totalExports > 0 ? `${exportSummary.totalExports} exportacoes registradas` : "Nenhuma exportacao ainda"}
                 </p>
@@ -517,7 +512,7 @@ export default function DashboardPage() {
                 exportSummary.recentExports.map((item) => (
                   <div key={item.id} className="rounded-[18px] border border-white/90 bg-white/90 px-4 py-3 shadow-[0_12px_24px_rgba(15,23,42,0.04)]">
                     <p className="truncate text-sm font-semibold text-ink">{item.fileName}</p>
-                    <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+                    <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-600">
                       {formatDashboardMoment(item.exportedAt)}
                     </p>
                   </div>
@@ -545,11 +540,6 @@ export default function DashboardPage() {
           </Panel>
         ) : resumes.length === 0 ? (
           <Panel
-            action={
-              <Button as={Link} to={appRoutes.templates} variant="accent">
-                Escolher template
-              </Button>
-            }
             description="Crie a versao base, ajuste o template e gere seu primeiro PDF em poucos minutos."
             title="Nenhum curriculo salvo ainda"
           />
@@ -557,12 +547,12 @@ export default function DashboardPage() {
           <>
             <div className="mb-5 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-400">Curriculos salvos</p>
+                <p className="text-xs font-medium uppercase tracking-[0.22em] text-slate-600">Curriculos salvos</p>
                 <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
                   {resumes.length === 1 ? "1 versao pronta para adaptar" : `${resumes.length} versoes prontas para edicao rapida`}
                 </h2>
               </div>
-              <div className="rounded-full border border-white/80 bg-white/80 px-4 py-2 text-sm font-semibold text-slate-500 shadow-soft">
+              <div className="rounded-full border border-white/80 bg-white/80 px-4 py-2 text-sm font-semibold text-slate-700 shadow-soft">
                 {exportSummary.totalExports} {exportSummary.totalExports === 1 ? "PDF recente" : "PDFs recentes"}
               </div>
             </div>

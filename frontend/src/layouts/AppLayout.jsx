@@ -33,8 +33,11 @@ export default function AppLayout({ title, subtitle, actions, children, contentC
               </Link>
             </div>
 
-            <div className="hidden min-w-0 flex-1 items-center justify-end gap-3 lg:flex">
-              <nav className="flex flex-wrap items-center gap-2 rounded-full border border-white/70 bg-white/75 p-2 shadow-[0_14px_35px_rgba(15,23,42,0.06)]">
+            <div className="hidden min-w-0 flex-1 flex-col gap-3 sm:flex lg:flex-row lg:items-center lg:justify-end">
+              <nav
+                aria-label="Navegacao do workspace"
+                className="flex flex-wrap items-center gap-2 rounded-full border border-white/70 bg-white/75 p-2 shadow-[0_14px_35px_rgba(15,23,42,0.06)] lg:justify-end"
+              >
                 {workspaceNavItems.map((item) => {
                   const isActive = item.matches(location.pathname);
 
@@ -56,7 +59,7 @@ export default function AppLayout({ title, subtitle, actions, children, contentC
               </nav>
 
               <div className="rounded-full border border-white/70 bg-white/80 px-4 py-2 shadow-[0_14px_35px_rgba(15,23,42,0.06)]">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.26em] text-slate-600">Modo local</p>
+                <p className="text-[13px] font-semibold uppercase tracking-[0.14em] text-slate-700">Modo local</p>
                 <p className="text-sm font-semibold text-ink">Curriculos salvos neste navegador</p>
               </div>
             </div>
@@ -69,42 +72,12 @@ export default function AppLayout({ title, subtitle, actions, children, contentC
             />
           </div>
 
-          <div className="mt-4 hidden flex-col gap-3 sm:flex lg:hidden">
-            <div className="flex flex-col gap-3">
-              <nav className="flex flex-wrap items-center gap-2 rounded-full border border-white/70 bg-white/75 p-2 shadow-[0_14px_35px_rgba(15,23,42,0.06)]">
-                {workspaceNavItems.map((item) => {
-                  const isActive = item.matches(location.pathname);
-
-                  return (
-                    <Link
-                      aria-current={isActive ? "page" : undefined}
-                      key={item.to}
-                      className={
-                        isActive
-                          ? "rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white shadow-[0_12px_25px_rgba(15,23,42,0.18)]"
-                          : "rounded-full px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-ink"
-                      }
-                      to={item.to}
-                    >
-                      {item.label}
-                    </Link>
-                  );
-                })}
-              </nav>
-
-              <div className="rounded-full border border-white/70 bg-white/80 px-4 py-2 shadow-[0_14px_35px_rgba(15,23,42,0.06)]">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.26em] text-slate-600">Modo local</p>
-                <p className="text-sm font-semibold text-ink">Curriculos salvos neste navegador</p>
-              </div>
-            </div>
-          </div>
-
           {isMobileMenuOpen ? (
             <div
               className="mt-4 space-y-3 rounded-[28px] border border-white/80 bg-white/92 p-3 shadow-[0_24px_60px_rgba(15,23,42,0.1)] sm:hidden"
               id="workspace-mobile-menu"
             >
-              <nav className="flex flex-col gap-2">
+              <nav aria-label="Menu do workspace" className="flex flex-col gap-2">
                 {workspaceNavItems.map((item) => {
                   const isActive = item.matches(location.pathname);
 
@@ -126,7 +99,7 @@ export default function AppLayout({ title, subtitle, actions, children, contentC
               </nav>
 
               <div className="rounded-[22px] border border-white/80 bg-[linear-gradient(145deg,rgba(248,250,252,0.94),rgba(255,255,255,0.98))] px-4 py-3">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.26em] text-slate-600">Modo local</p>
+                <p className="text-[13px] font-semibold uppercase tracking-[0.14em] text-slate-700">Modo local</p>
                 <p className="mt-1 text-sm font-semibold text-ink">Curriculos salvos neste navegador</p>
               </div>
             </div>
@@ -137,7 +110,7 @@ export default function AppLayout({ title, subtitle, actions, children, contentC
       <main className={cn("relative mx-auto w-full max-w-7xl flex-1 px-6 py-8 lg:px-8", contentClassName)}>
         <div className="mb-8 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
           <div className="max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.32em] text-slate-600">Workspace</p>
+            <p className="text-[13px] font-semibold uppercase tracking-[0.14em] text-slate-700">Workspace</p>
             <h1 className="mt-3 text-3xl font-semibold tracking-tight md:text-4xl">{title}</h1>
             {subtitle ? <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-700">{subtitle}</p> : null}
           </div>

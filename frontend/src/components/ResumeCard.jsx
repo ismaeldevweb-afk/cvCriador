@@ -16,7 +16,7 @@ export default function ResumeCard({ resume, onDuplicate, onDelete }) {
       description={`Template ${resume.template} • atualizado em ${new Date(resume.updatedAt).toLocaleDateString("pt-BR")}`}
       title={resume.title}
       action={
-        <span className="inline-flex max-w-full items-center rounded-full border border-slate-200 bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+        <span className="inline-flex max-w-full items-center rounded-full border border-slate-200 bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-700">
           {resume.data.personal?.role || "Sem cargo"}
         </span>
       }
@@ -35,11 +35,11 @@ export default function ResumeCard({ resume, onDuplicate, onDelete }) {
 
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="rounded-[20px] border border-slate-200 bg-slate-50 px-4 py-3">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Conteudo</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-600">Conteudo</p>
             <p className="mt-2 text-sm font-semibold text-ink">{totalSections} blocos preenchidos</p>
           </div>
           <div className="rounded-[20px] border border-brand-100 bg-brand-50/70 px-4 py-3">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-brand-600/70">Competencias</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-brand-900">Competencias</p>
             <p className="mt-2 text-sm font-semibold text-brand-700">{skillCount} skills cadastradas</p>
           </div>
         </div>
