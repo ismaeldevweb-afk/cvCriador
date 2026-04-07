@@ -462,8 +462,8 @@ export default function DashboardPage() {
               <ActionCard
                 as={Link}
                 icon="layers"
-                subtitle="Comece pela galeria e defina o template da nova versao."
-                title="Explorar templates"
+                subtitle="Volte para a home e defina o template da nova versao."
+                title="Escolher template"
                 to={appRoutes.templates}
               />
             )}

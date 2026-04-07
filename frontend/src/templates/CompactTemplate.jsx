@@ -158,7 +158,7 @@ export default function CompactTemplate({ resume, theme = buildThemeTokens(resum
   );
 }
 
-export function renderCompactDocument(resume) {
+export function renderCompactDocument(resume, options = {}) {
   const theme = buildThemeTokens(resume.customization);
   const snapshot = getResumeSnapshot(resume);
   const experienceMarkup = snapshot.experience
@@ -302,5 +302,6 @@ export function renderCompactDocument(resume) {
     `,
     theme,
     "#f8fafc",
+    options,
   );
 }

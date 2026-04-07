@@ -168,7 +168,7 @@ export default function LedgerTemplate({ resume, theme = buildThemeTokens(resume
   );
 }
 
-export function renderLedgerDocument(resume) {
+export function renderLedgerDocument(resume, options = {}) {
   const theme = buildThemeTokens(resume.customization);
   const snapshot = getResumeSnapshot(resume);
   const hasPhoto = Boolean(snapshot.personal.photo);
@@ -313,5 +313,6 @@ export function renderLedgerDocument(resume) {
     `,
     theme,
     "#f8fafc",
+    options,
   );
 }

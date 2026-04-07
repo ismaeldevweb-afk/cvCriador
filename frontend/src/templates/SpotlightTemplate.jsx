@@ -178,7 +178,7 @@ export default function SpotlightTemplate({ resume, theme = buildThemeTokens(res
   );
 }
 
-export function renderSpotlightDocument(resume) {
+export function renderSpotlightDocument(resume, options = {}) {
   const theme = buildThemeTokens(resume.customization);
   const snapshot = getResumeSnapshot(resume);
   const hasPhoto = Boolean(snapshot.personal.photo);
@@ -326,5 +326,6 @@ export function renderSpotlightDocument(resume) {
     `,
     theme,
     "#f4f7fb",
+    options,
   );
 }

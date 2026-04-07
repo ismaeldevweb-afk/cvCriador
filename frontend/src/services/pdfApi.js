@@ -10,7 +10,7 @@ export function createPdfFileName(fullName) {
     .toLowerCase() || "curriculo-online"}.pdf`;
 }
 
-export async function exportPdfFile({ resume, fileName }) {
+export async function exportPdfFile({ resume, fileName, pagination }) {
   const response = await fetch(buildApiUrl("/export-pdf"), {
     method: "POST",
     headers: {
@@ -21,6 +21,7 @@ export async function exportPdfFile({ resume, fileName }) {
       resume,
       fileName,
       disposition: "attachment",
+      pagination,
     }),
   });
 

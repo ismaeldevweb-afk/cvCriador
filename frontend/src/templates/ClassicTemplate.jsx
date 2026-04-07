@@ -1,11 +1,18 @@
 import { buildThemeTokens, escapeHtml, getResumeSnapshot, withLineBreaks, wrapDocument } from "./templateUtils";
 import { ProfilePhoto, renderProfilePhotoMarkup } from "./templatePhoto";
+import ResumeSection, { ResumeBlock } from "../components/resume/ResumeSection";
 
-function SectionHeading({ title, theme }) {
+function Section({ title, theme, children, className = "" }) {
   return (
-    <p className="text-xs font-bold uppercase tracking-[0.36em]" style={{ color: theme.primaryColor }}>
-      {title}
-    </p>
+    <ResumeSection
+      bodyClassName="mt-4"
+      className={className}
+      title={title}
+      titleClassName="text-xs font-bold uppercase tracking-[0.36em]"
+      titleStyle={{ color: theme.primaryColor }}
+    >
+      {children}
+    </ResumeSection>
   );
 }
 
@@ -43,25 +50,22 @@ export default function ClassicTemplate({ resume, theme = buildThemeTokens(resum
       </header>
 
       <div className="space-y-6" style={{ marginTop: theme.sectionGap }}>
-        <section>
-          <SectionHeading theme={theme} title="Objetivo profissional" />
-          <p className="mt-3 text-[15px] leading-7 text-slate-700">
+        <Section className="" theme={theme} title="Objetivo profissional">
+          <p className="text-[15px] leading-7 text-slate-700">
             {snapshot.objective || "Explique com clareza a direcao profissional buscada."}
           </p>
-        </section>
+        </Section>
 
-        <section>
-          <SectionHeading theme={theme} title="Resumo profissional" />
-          <p className="mt-3 text-[15px] leading-7 text-slate-700">
+        <Section theme={theme} title="Resumo profissional">
+          <p className="text-[15px] leading-7 text-slate-700">
             {snapshot.summary || "Apresente sua senioridade, contexto e principais pontos de valor."}
           </p>
-        </section>
+        </Section>
 
-        <section>
-          <SectionHeading theme={theme} title="Experiencia profissional" />
-          <div className="mt-4 space-y-5">
+        <Section theme={theme} title="Experiencia profissional">
+          <div className="space-y-5">
             {snapshot.experience.map((item) => (
-              <div key={item.id}>
+              <ResumeBlock key={item.id}>
                 <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
                   <div>
                     <p className="text-lg font-semibold text-slate-900">{item.role}</p>
@@ -72,43 +76,40 @@ export default function ClassicTemplate({ resume, theme = buildThemeTokens(resum
                   </span>
                 </div>
                 <p className="mt-3 text-[15px] leading-7 text-slate-700">{item.description}</p>
-              </div>
+              </ResumeBlock>
             ))}
           </div>
-        </section>
+        </Section>
 
         <div className="grid gap-6 md:grid-cols-2">
-          <section>
-            <SectionHeading theme={theme} title="Formacao" />
-            <div className="mt-4 space-y-4">
+          <Section theme={theme} title="Formacao">
+            <div className="space-y-4">
               {snapshot.education.map((item) => (
-                <div key={item.id}>
+                <ResumeBlock key={item.id}>
                   <p className="font-semibold text-slate-900">{item.course}</p>
                   <p className="text-sm text-slate-500">{item.institution}</p>
                   <p className="mt-2 text-sm font-semibold" style={{ color: theme.primaryColor }}>
                     {item.period}
                   </p>
-                </div>
+                </ResumeBlock>
               ))}
             </div>
-          </section>
+          </Section>
 
-          <section>
-            <SectionHeading theme={theme} title="Certificacoes" />
-            <div className="mt-4 space-y-4">
+          <Section theme={theme} title="Certificacoes">
+            <div className="space-y-4">
               {snapshot.certifications.map((item) => (
-                <div key={item.id}>
+                <ResumeBlock key={item.id}>
                   <p className="font-semibold text-slate-900">{item.name}</p>
                   <p className="text-sm text-slate-500">{[item.issuer, item.year].filter(Boolean).join(" • ")}</p>
-                </div>
+                </ResumeBlock>
               ))}
             </div>
-          </section>
+          </Section>
         </div>
 
-        <section>
-          <SectionHeading theme={theme} title="Habilidades e idiomas" />
-          <div className="mt-4 flex flex-wrap gap-2">
+        <Section theme={theme} title="Habilidades e idiomas">
+          <div className="flex flex-wrap gap-2">
             {snapshot.skills.map((skill) => (
               <span
                 key={skill}
@@ -127,13 +128,12 @@ export default function ClassicTemplate({ resume, theme = buildThemeTokens(resum
               </span>
             ))}
           </div>
-        </section>
+        </Section>
 
-        <section>
-          <SectionHeading theme={theme} title="Projetos" />
-          <div className="mt-4 space-y-5">
+        <Section theme={theme} title="Projetos">
+          <div className="space-y-5">
             {snapshot.projects.map((item) => (
-              <div key={item.id}>
+              <ResumeBlock key={item.id}>
                 <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
                   <div>
                     <p className="font-semibold text-slate-900">{item.name}</p>
@@ -144,23 +144,22 @@ export default function ClassicTemplate({ resume, theme = buildThemeTokens(resum
                   </span>
                 </div>
                 <p className="mt-3 text-[15px] leading-7 text-slate-700">{item.description}</p>
-              </div>
+              </ResumeBlock>
             ))}
           </div>
-        </section>
+        </Section>
 
         {snapshot.additionalInfo ? (
-          <section>
-            <SectionHeading theme={theme} title="Informacoes adicionais" />
-            <p className="mt-3 text-[15px] leading-7 text-slate-700">{snapshot.additionalInfo}</p>
-          </section>
+          <Section theme={theme} title="Informacoes adicionais">
+            <p className="text-[15px] leading-7 text-slate-700">{snapshot.additionalInfo}</p>
+          </Section>
         ) : null}
       </div>
     </article>
   );
 }
 
-export function renderClassicDocument(resume) {
+export function renderClassicDocument(resume, options = {}) {
   const theme = buildThemeTokens(resume.customization);
   const snapshot = getResumeSnapshot(resume);
 
@@ -297,5 +296,6 @@ export function renderClassicDocument(resume) {
     `,
     theme,
     "#f8fafc",
+    options,
   );
 }

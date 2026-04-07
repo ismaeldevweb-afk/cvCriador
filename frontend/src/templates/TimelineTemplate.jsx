@@ -184,7 +184,7 @@ export default function TimelineTemplate({ resume, theme = buildThemeTokens(resu
   );
 }
 
-export function renderTimelineDocument(resume) {
+export function renderTimelineDocument(resume, options = {}) {
   const theme = buildThemeTokens(resume.customization);
   const snapshot = getResumeSnapshot(resume);
   const hasPhoto = Boolean(snapshot.personal.photo);
@@ -337,5 +337,6 @@ export function renderTimelineDocument(resume) {
     `,
     theme,
     "#f8fafc",
+    options,
   );
 }

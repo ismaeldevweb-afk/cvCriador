@@ -180,7 +180,7 @@ export default function AtelierTemplate({ resume, theme = buildThemeTokens(resum
   );
 }
 
-export function renderAtelierDocument(resume) {
+export function renderAtelierDocument(resume, options = {}) {
   const theme = buildThemeTokens(resume.customization);
   const snapshot = getResumeSnapshot(resume);
   const hasPhoto = Boolean(snapshot.personal.photo);
@@ -335,5 +335,6 @@ export function renderAtelierDocument(resume) {
     `,
     theme,
     "#fff8f1",
+    options,
   );
 }

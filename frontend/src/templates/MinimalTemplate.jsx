@@ -1,14 +1,18 @@
 import { buildThemeTokens, escapeHtml, getResumeSnapshot, withLineBreaks, wrapDocument } from "./templateUtils";
 import { ProfilePhoto, renderProfilePhotoMarkup } from "./templatePhoto";
+import ResumeSection, { ResumeBlock } from "../components/resume/ResumeSection";
 
 function Section({ title, theme, children }) {
   return (
-    <section className="rounded-[24px] border border-slate-200 bg-white p-6">
-      <p className="text-[11px] font-bold uppercase tracking-[0.42em]" style={{ color: theme.primaryColor }}>
-        {title}
-      </p>
-      <div className="mt-4">{children}</div>
-    </section>
+    <ResumeSection
+      bodyClassName="mt-4"
+      className="rounded-[24px] border border-slate-200 bg-white p-6"
+      title={title}
+      titleClassName="text-[11px] font-bold uppercase tracking-[0.42em]"
+      titleStyle={{ color: theme.primaryColor }}
+    >
+      {children}
+    </ResumeSection>
   );
 }
 
@@ -63,7 +67,7 @@ export default function MinimalTemplate({ resume, theme = buildThemeTokens(resum
           <Section theme={theme} title="Experiencia">
             <div className="space-y-5">
               {snapshot.experience.map((item) => (
-                <div key={item.id} className="border-b border-slate-100 pb-5 last:border-b-0 last:pb-0">
+                <ResumeBlock key={item.id} className="border-b border-slate-100 pb-5 last:border-b-0 last:pb-0">
                   <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
                     <div>
                       <p className="text-lg font-semibold text-slate-900">{item.role}</p>
@@ -74,7 +78,7 @@ export default function MinimalTemplate({ resume, theme = buildThemeTokens(resum
                     </span>
                   </div>
                   <p className="mt-3 text-[15px] leading-7 text-slate-700">{item.description}</p>
-                </div>
+                </ResumeBlock>
               ))}
             </div>
           </Section>
@@ -82,7 +86,7 @@ export default function MinimalTemplate({ resume, theme = buildThemeTokens(resum
           <Section theme={theme} title="Projetos">
             <div className="space-y-4">
               {snapshot.projects.map((item) => (
-                <div key={item.id}>
+                <ResumeBlock key={item.id}>
                   <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
                     <div>
                       <p className="font-semibold text-slate-900">{item.name}</p>
@@ -93,7 +97,7 @@ export default function MinimalTemplate({ resume, theme = buildThemeTokens(resum
                     </span>
                   </div>
                   <p className="mt-3 text-[15px] leading-7 text-slate-700">{item.description}</p>
-                </div>
+                </ResumeBlock>
               ))}
             </div>
           </Section>
@@ -103,13 +107,13 @@ export default function MinimalTemplate({ resume, theme = buildThemeTokens(resum
           <Section theme={theme} title="Formacao">
             <div className="space-y-4">
               {snapshot.education.map((item) => (
-                <div key={item.id}>
+                <ResumeBlock key={item.id}>
                   <p className="font-semibold text-slate-900">{item.course}</p>
                   <p className="text-sm text-slate-500">{item.institution}</p>
                   <p className="mt-2 text-sm font-semibold" style={{ color: theme.primaryColor }}>
                     {item.period}
                   </p>
-                </div>
+                </ResumeBlock>
               ))}
             </div>
           </Section>
@@ -131,16 +135,16 @@ export default function MinimalTemplate({ resume, theme = buildThemeTokens(resum
           <Section theme={theme} title="Idiomas e certificacoes">
             <div className="space-y-4">
               {snapshot.languages.map((item) => (
-                <div key={item.id}>
+                <ResumeBlock key={item.id}>
                   <p className="font-semibold text-slate-900">{item.name}</p>
                   <p className="text-sm text-slate-500">{item.level}</p>
-                </div>
+                </ResumeBlock>
               ))}
               {snapshot.certifications.map((item) => (
-                <div key={item.id}>
+                <ResumeBlock key={item.id}>
                   <p className="font-semibold text-slate-900">{item.name}</p>
                   <p className="text-sm text-slate-500">{[item.issuer, item.year].filter(Boolean).join(" • ")}</p>
-                </div>
+                </ResumeBlock>
               ))}
             </div>
           </Section>
@@ -156,7 +160,7 @@ export default function MinimalTemplate({ resume, theme = buildThemeTokens(resum
   );
 }
 
-export function renderMinimalDocument(resume) {
+export function renderMinimalDocument(resume, options = {}) {
   const theme = buildThemeTokens(resume.customization);
   const snapshot = getResumeSnapshot(resume);
 
@@ -293,5 +297,6 @@ export function renderMinimalDocument(resume) {
     `,
     theme,
     "#f8fafc",
+    options,
   );
 }

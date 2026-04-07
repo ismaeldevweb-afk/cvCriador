@@ -1,3 +1,9 @@
+import {
+  A4_PAGE_HEIGHT_MM,
+  RESUME_PAGE_PADDING_MM,
+  sanitizePageStarts,
+} from "../utils/resumePagination";
+
 export const fontStacks = {
   manrope: "'Manrope', 'Helvetica Neue', Arial, sans-serif",
   space: "'Space Grotesk', 'Helvetica Neue', Arial, sans-serif",
@@ -117,20 +123,96 @@ export function withLineBreaks(value = "") {
   return escapeHtml(value).replaceAll("\n", "<br />");
 }
 
-export function wrapDocument(markup, theme, pageBackground = "#f8fafc") {
+export function wrapDocument(markup, theme, pageBackground = "#f8fafc", options = {}) {
+  const pageStarts = sanitizePageStarts(options.pagination?.pageStarts ?? [0]);
+  const pageHeight = `${A4_PAGE_HEIGHT_MM}mm`;
+  const pagePadding = `${RESUME_PAGE_PADDING_MM}mm`;
+  const viewportHeight = `${A4_PAGE_HEIGHT_MM - RESUME_PAGE_PADDING_MM * 2}mm`;
+  const pagesMarkup = pageStarts
+    .map(
+      (pageStart, index) => `
+        <section class="resume-print-page" style="${index < pageStarts.length - 1 ? "" : "break-after:auto;page-break-after:auto;"}">
+          <div class="resume-print-body">
+            <div class="resume-print-viewport">
+              <div class="resume-page-content" style="${pageStart > 0 ? `transform:translateY(-${pageStart}px);` : ""}">
+                ${markup}
+              </div>
+            </div>
+          </div>
+        </section>`,
+    )
+    .join("");
+
   return `<!DOCTYPE html>
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Criador de Curriculo Online</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      @page {
+        margin: 0;
+        size: A4;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        background: ${pageBackground};
+        color: ${theme.bodyColor};
+        font-family: ${theme.fontFamily};
+      }
+
+      .resume-document-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+
+      .resume-print-page {
+        background: #ffffff;
+        break-after: page;
+        height: ${pageHeight};
+        overflow: hidden;
+        page-break-after: always;
+        width: 210mm;
+      }
+
+      .resume-print-body {
+        background: #ffffff;
+        height: 100%;
+        padding: ${pagePadding};
+        width: 100%;
+      }
+
+      .resume-print-viewport {
+        height: ${viewportHeight};
+        overflow: hidden;
+        position: relative;
+        width: 100%;
+      }
+
+      .resume-page-content {
+        width: 100%;
+      }
+
+      .resume-page-content > article {
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        min-height: 100%;
+      }
+    </style>
   </head>
-  <body style="margin:0;background:${pageBackground};font-family:${theme.fontFamily};color:${theme.bodyColor};">
-    <div style="padding:24px;">
-      <div style="max-width:794px;margin:0 auto;">
-        ${markup}
-      </div>
-    </div>
+  <body>
+    <main class="resume-document-stack">${pagesMarkup}</main>
   </body>
 </html>`;
 }

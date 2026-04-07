@@ -1,14 +1,17 @@
 import { buildThemeTokens, escapeHtml, getResumeSnapshot, withLineBreaks, wrapDocument } from "./templateUtils";
 import { ProfilePhoto, renderProfilePhotoMarkup } from "./templatePhoto";
+import ResumeSection, { ResumeBlock } from "../components/resume/ResumeSection";
 
 function Section({ title, theme, children }) {
   return (
-    <section>
-      <p className="text-xs font-bold uppercase tracking-[0.34em]" style={{ color: theme.primaryColor }}>
-        {title}
-      </p>
-      <div className="mt-4">{children}</div>
-    </section>
+    <ResumeSection
+      bodyClassName="mt-4"
+      title={title}
+      titleClassName="text-xs font-bold uppercase tracking-[0.34em]"
+      titleStyle={{ color: theme.primaryColor }}
+    >
+      {children}
+    </ResumeSection>
   );
 }
 
@@ -86,7 +89,7 @@ export default function ModernTemplate({ resume, theme = buildThemeTokens(resume
           <Section theme={theme} title="Experiencia profissional">
             <div className="space-y-5">
               {snapshot.experience.map((item) => (
-                <div key={item.id} className="rounded-[22px] border border-slate-200 bg-slate-50/80 p-5">
+                <ResumeBlock key={item.id} className="rounded-[22px] border border-slate-200 bg-slate-50/80 p-5">
                   <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
                     <div>
                       <p className="text-lg font-semibold text-slate-900">{item.role}</p>
@@ -97,7 +100,7 @@ export default function ModernTemplate({ resume, theme = buildThemeTokens(resume
                     </span>
                   </div>
                   <p className="mt-4 text-[15px] leading-7 text-slate-700">{item.description}</p>
-                </div>
+                </ResumeBlock>
               ))}
             </div>
           </Section>
@@ -105,7 +108,7 @@ export default function ModernTemplate({ resume, theme = buildThemeTokens(resume
           <Section theme={theme} title="Projetos">
             <div className="space-y-4">
               {snapshot.projects.map((item) => (
-                <div key={item.id} className="rounded-[22px] border border-slate-200 p-5">
+                <ResumeBlock key={item.id} className="rounded-[22px] border border-slate-200 p-5">
                   <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
                     <div>
                       <p className="font-semibold text-slate-900">{item.name}</p>
@@ -116,7 +119,7 @@ export default function ModernTemplate({ resume, theme = buildThemeTokens(resume
                     </span>
                   </div>
                   <p className="mt-4 text-[15px] leading-7 text-slate-700">{item.description}</p>
-                </div>
+                </ResumeBlock>
               ))}
             </div>
           </Section>
@@ -125,13 +128,13 @@ export default function ModernTemplate({ resume, theme = buildThemeTokens(resume
             <Section theme={theme} title="Formacao">
               <div className="space-y-4">
                 {snapshot.education.map((item) => (
-                  <div key={item.id}>
+                  <ResumeBlock key={item.id}>
                     <p className="font-semibold text-slate-900">{item.course}</p>
                     <p className="text-sm text-slate-500">{item.institution}</p>
                     <p className="mt-2 text-sm font-semibold" style={{ color: theme.primaryColor }}>
                       {item.period}
                     </p>
-                  </div>
+                  </ResumeBlock>
                 ))}
               </div>
             </Section>
@@ -139,12 +142,12 @@ export default function ModernTemplate({ resume, theme = buildThemeTokens(resume
             <Section theme={theme} title="Certificacoes">
               <div className="space-y-4">
                 {snapshot.certifications.map((item) => (
-                  <div key={item.id}>
+                  <ResumeBlock key={item.id}>
                     <p className="font-semibold text-slate-900">{item.name}</p>
                     <p className="text-sm text-slate-500">
                       {[item.issuer, item.year].filter(Boolean).join(" • ")}
                     </p>
-                  </div>
+                  </ResumeBlock>
                 ))}
               </div>
             </Section>
@@ -161,7 +164,7 @@ export default function ModernTemplate({ resume, theme = buildThemeTokens(resume
   );
 }
 
-export function renderModernDocument(resume) {
+export function renderModernDocument(resume, options = {}) {
   const theme = buildThemeTokens(resume.customization);
   const snapshot = getResumeSnapshot(resume);
 
@@ -278,5 +281,6 @@ export function renderModernDocument(resume) {
     `,
     theme,
     "#f8fafc",
+    options,
   );
 }

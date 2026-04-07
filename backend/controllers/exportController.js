@@ -1,4 +1,4 @@
-import { sanitizeResumeForExport } from "../services/exportSanitizer.js";
+import { sanitizePaginationForExport, sanitizeResumeForExport } from "../services/exportSanitizer.js";
 import { generatePdf } from "../services/pdfService.js";
 import { renderResumeDocumentOnServer } from "../services/templateRenderService.js";
 import { createHttpError } from "../utils/http.js";
@@ -23,7 +23,8 @@ export async function exportPdfHandler(request, response, next) {
     }
 
     const resume = sanitizeResumeForExport(request.body.resume);
-    const html = await renderResumeDocumentOnServer(resume);
+    const pagination = sanitizePaginationForExport(request.body.pagination);
+    const html = await renderResumeDocumentOnServer(resume, { pagination });
     const pdfBuffer = await generatePdf({ html });
     const fileName = sanitizePdfFileName(request.body.fileName);
     const disposition = request.body.disposition === "inline" ? "inline" : "attachment";

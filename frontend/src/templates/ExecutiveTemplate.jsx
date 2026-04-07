@@ -196,7 +196,7 @@ export default function ExecutiveTemplate({ resume, theme = buildThemeTokens(res
   );
 }
 
-export function renderExecutiveDocument(resume) {
+export function renderExecutiveDocument(resume, options = {}) {
   const theme = buildThemeTokens(resume.customization);
   const snapshot = getResumeSnapshot(resume);
   const contactMarkup = (snapshot.contactLines.length > 0 ? snapshot.contactLines : ["Email, telefone e canais profissionais"])
@@ -354,5 +354,6 @@ export function renderExecutiveDocument(resume) {
     `,
     theme,
     "#f8fafc",
+    options,
   );
 }

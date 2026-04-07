@@ -72,8 +72,8 @@ export function getTemplateComponent(template) {
   return registry[template]?.component ?? ModernTemplate;
 }
 
-export function renderResumeDocument(resume) {
-  return (registry[resume.template] ?? registry.modern).renderDocument(resume);
+export function renderResumeDocument(resume, options = {}) {
+  return (registry[resume.template] ?? registry.modern).renderDocument(resume, options);
 }
 
 export { buildThemeTokens };

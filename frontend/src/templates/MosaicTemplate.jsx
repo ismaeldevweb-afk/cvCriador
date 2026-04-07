@@ -165,7 +165,7 @@ export default function MosaicTemplate({ resume, theme = buildThemeTokens(resume
   );
 }
 
-export function renderMosaicDocument(resume) {
+export function renderMosaicDocument(resume, options = {}) {
   const theme = buildThemeTokens(resume.customization);
   const snapshot = getResumeSnapshot(resume);
   const hasPhoto = Boolean(snapshot.personal.photo);
@@ -305,5 +305,6 @@ export function renderMosaicDocument(resume) {
     `,
     theme,
     "#f8fafc",
+    options,
   );
 }

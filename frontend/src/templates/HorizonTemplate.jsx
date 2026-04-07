@@ -173,7 +173,7 @@ export default function HorizonTemplate({ resume, theme = buildThemeTokens(resum
   );
 }
 
-export function renderHorizonDocument(resume) {
+export function renderHorizonDocument(resume, options = {}) {
   const theme = buildThemeTokens(resume.customization);
   const snapshot = getResumeSnapshot(resume);
   const hasPhoto = Boolean(snapshot.personal.photo);
@@ -324,5 +324,6 @@ export function renderHorizonDocument(resume) {
     `,
     theme,
     "#f4f9fd",
+    options,
   );
 }

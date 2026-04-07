@@ -347,16 +347,16 @@ export async function generatePdf({ html }) {
       // Best effort only. The document is server-rendered and does not require arbitrary network activity.
     }
 
-    await page.emulateMediaType("screen");
+    await page.emulateMediaType("print");
 
     return await page.pdf({
       format: "A4",
       printBackground: true,
       margin: {
-        top: "18px",
-        right: "18px",
-        bottom: "18px",
-        left: "18px",
+        top: "0",
+        right: "0",
+        bottom: "0",
+        left: "0",
       },
     });
   } finally {

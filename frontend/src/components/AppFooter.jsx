@@ -9,14 +9,14 @@ export default function AppFooter({ brandAsLink = true, showNavigation = true })
 
   return (
     <footer className="relative mt-12 border-t border-white/70 bg-white/72 backdrop-blur-2xl">
-      <div className="mx-auto max-w-7xl px-6 py-8 lg:px-8">
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className={`grid gap-8 lg:items-start ${showNavigation ? "lg:grid-cols-[1.2fr_0.8fr]" : "lg:grid-cols-[1.2fr_0.6fr]"}`}>
           <div>
-            <BrandWrapper className="flex items-center gap-3 text-sm font-semibold tracking-[0.24em] text-ink" {...brandProps}>
+            <BrandWrapper className="flex flex-wrap items-center gap-3 text-xs font-semibold tracking-[0.18em] text-ink sm:text-sm sm:tracking-[0.24em]" {...brandProps}>
               <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#0f172a_0%,#1f2937_100%)] text-white shadow-[0_16px_35px_rgba(15,23,42,0.16)]">
                 CV
               </span>
-              <span>{brand.name}</span>
+              <span className="max-w-full">{brand.name}</span>
             </BrandWrapper>
             <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600">
               {footer.description}
@@ -57,9 +57,9 @@ export default function AppFooter({ brandAsLink = true, showNavigation = true })
           </div>
         </div>
 
-        <div className="mt-8 flex flex-col gap-3 border-t border-slate-200/80 pt-5 text-xs font-medium uppercase tracking-[0.18em] text-slate-600 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-8 flex flex-col gap-3 border-t border-slate-200/80 pt-5 text-xs font-medium uppercase tracking-[0.14em] text-slate-600 sm:flex-row sm:items-center sm:justify-between sm:tracking-[0.18em]">
           <p>{new Date().getFullYear()} {brand.name}</p>
-          <p>{footer.tagline}</p>
+          <p className="max-w-md leading-5 sm:text-right">{footer.tagline}</p>
         </div>
       </div>
     </footer>

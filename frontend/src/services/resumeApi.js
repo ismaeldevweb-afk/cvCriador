@@ -222,6 +222,10 @@ function writeResumes(resumes) {
   writeStoredRecords(sortByUpdatedAt(resumes).map(normalizeRecord));
 }
 
+export function hasSavedResumes() {
+  return readResumes().length > 0;
+}
+
 function getResumeOrThrow(id) {
   const resume = readResumes().find((item) => item.id === String(id));
 

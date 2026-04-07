@@ -183,7 +183,7 @@ export default function EditorialTemplate({ resume, theme = buildThemeTokens(res
   );
 }
 
-export function renderEditorialDocument(resume) {
+export function renderEditorialDocument(resume, options = {}) {
   const theme = buildThemeTokens(resume.customization);
   const snapshot = getResumeSnapshot(resume);
   const contactMarkup = (snapshot.contactLines.length > 0 ? snapshot.contactLines : ["Dados de contato e links profissionais"])
@@ -331,5 +331,6 @@ export function renderEditorialDocument(resume) {
     `,
     theme,
     "#fcfaf6",
+    options,
   );
 }

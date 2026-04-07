@@ -33,6 +33,24 @@ function sanitizeList(items, maxItems, mapper) {
   return items.slice(0, maxItems).map(mapper);
 }
 
+function sanitizePageStarts(values = []) {
+  const normalized = Array.isArray(values)
+    ? values
+        .map((value) => Number(value))
+        .filter((value) => Number.isFinite(value) && value >= 0)
+        .map((value) => Math.round(value))
+    : [];
+
+  const withDefault = normalized.length > 0 ? normalized : [0];
+  const unique = Array.from(new Set(withDefault)).sort((left, right) => left - right);
+
+  if (unique[0] !== 0) {
+    unique.unshift(0);
+  }
+
+  return unique.slice(0, 8);
+}
+
 export function sanitizeResumeForExport(source = {}) {
   const resume = normalizeResume(source);
 
@@ -99,5 +117,11 @@ export function sanitizeResumeForExport(source = {}) {
         ? resume.customization.titleScale
         : DEFAULT_CUSTOMIZATION.titleScale,
     },
+  };
+}
+
+export function sanitizePaginationForExport(source = {}) {
+  return {
+    pageStarts: sanitizePageStarts(source?.pageStarts),
   };
 }

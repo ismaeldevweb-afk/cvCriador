@@ -73,10 +73,17 @@ const AUTO_SAVE_DELAY_MS = 800;
 const ResumePreview = lazy(() => import("../components/ResumePreview"));
 
 function buildResumePayload(resume) {
+  const normalizedTitle = String(resume.title ?? "").trim();
+  const normalizedFullName = String(resume.personal?.fullName ?? "").trim();
+  const safeTitle = normalizedTitle || (normalizedFullName ? `Curriculo ${normalizedFullName}` : "Meu curriculo");
+
   return {
-    title: resume.title,
+    title: safeTitle,
     template: resume.template,
-    data: resume,
+    data: {
+      ...resume,
+      title: safeTitle,
+    },
   };
 }
 
@@ -139,6 +146,11 @@ export default function EditorPage() {
   const [lastSavedAt, setLastSavedAt] = useState(null);
   const [editorCardHeight, setEditorCardHeight] = useState(null);
   const [shouldLoadPreview, setShouldLoadPreview] = useState(false);
+  const [paginationInfo, setPaginationInfo] = useState({
+    isReady: false,
+    pageCount: 1,
+    pageStarts: [0],
+  });
   const [isImportPanelOpen, setIsImportPanelOpen] = useState(false);
   const [busyActions, setBusyActions] = useState({
     summary: false,
@@ -514,10 +526,7 @@ export default function EditorPage() {
   }
 
   async function handleSave() {
-    if (!syncErrors()) {
-      setFeedback("Revise os campos obrigatorios antes de salvar.");
-      return;
-    }
+    setErrors(formErrors);
 
     if (autoSaveTimerRef.current) {
       window.clearTimeout(autoSaveTimerRef.current);
@@ -538,7 +547,11 @@ export default function EditorPage() {
         }
 
         resumeDraftApi.clear();
-        setFeedback("Curriculo criado com sucesso.");
+        setFeedback(
+          Object.keys(formErrors).length > 0
+            ? "Curriculo salvo localmente. Complete nome, email e cargo antes de exportar."
+            : "Curriculo criado com sucesso.",
+        );
         setSaveState("saved");
         setLastSavedAt(response.resume.updatedAt);
         navigate(getEditorRoute(response.resume.id), { replace: true });
@@ -553,7 +566,11 @@ export default function EditorPage() {
 
       setSaveState("saved");
       setLastSavedAt(response.resume.updatedAt);
-      setFeedback("Curriculo salvo com sucesso.");
+      setFeedback(
+        Object.keys(formErrors).length > 0
+          ? "Curriculo salvo localmente. Complete nome, email e cargo antes de exportar."
+          : "Curriculo salvo com sucesso.",
+      );
     } catch (error) {
       if (!isMountedRef.current) {
         return;
@@ -590,6 +607,14 @@ export default function EditorPage() {
       return;
     }
 
+    ensurePreviewReady();
+
+    if (!paginationInfo.isReady) {
+      setFeedback("Estamos preparando a paginacao real do preview. Aguarde um instante e tente exportar novamente.");
+      scrollToSection(previewSectionRef);
+      return;
+    }
+
     setIsExporting(true);
 
     try {
@@ -598,6 +623,7 @@ export default function EditorPage() {
       await exportPdfFile({
         resume,
         fileName: createPdfFileName(resume.personal.fullName),
+        pagination: paginationInfo,
       });
 
       if (!isMountedRef.current) {
@@ -1190,7 +1216,7 @@ export default function EditorPage() {
 
               {shouldLoadPreview ? (
                 <Suspense fallback={<PreviewFallbackCard />}>
-                  <ResumePreview resume={resume} />
+                  <ResumePreview onPaginationChange={setPaginationInfo} resume={resume} />
                 </Suspense>
               ) : (
                 <PreviewFallbackCard />

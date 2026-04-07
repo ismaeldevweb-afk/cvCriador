@@ -175,7 +175,7 @@ export default function NoirTemplate({ resume, theme = buildThemeTokens(resume.c
   );
 }
 
-export function renderNoirDocument(resume) {
+export function renderNoirDocument(resume, options = {}) {
   const theme = buildThemeTokens(resume.customization);
   const snapshot = getResumeSnapshot(resume);
   const hasPhoto = Boolean(snapshot.personal.photo);
@@ -325,5 +325,6 @@ export function renderNoirDocument(resume) {
     `,
     theme,
     "#050b16",
+    options,
   );
 }

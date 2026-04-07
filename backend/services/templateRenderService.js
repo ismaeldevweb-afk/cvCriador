@@ -46,7 +46,7 @@ async function loadTemplateRenderer() {
   return module.renderResumeDocument;
 }
 
-export async function renderResumeDocumentOnServer(resume) {
+export async function renderResumeDocumentOnServer(resume, options = {}) {
   if (!rendererPromise) {
     rendererPromise = loadTemplateRenderer().catch((error) => {
       rendererPromise = null;
@@ -55,5 +55,5 @@ export async function renderResumeDocumentOnServer(resume) {
   }
 
   const renderResumeDocument = await rendererPromise;
-  return renderResumeDocument(resume);
+  return renderResumeDocument(resume, options);
 }

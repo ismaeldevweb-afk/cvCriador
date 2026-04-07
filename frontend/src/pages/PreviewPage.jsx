@@ -23,6 +23,11 @@ export default function PreviewPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
   const [feedback, setFeedback] = useState("");
+  const [paginationInfo, setPaginationInfo] = useState({
+    isReady: false,
+    pageCount: 1,
+    pageStarts: [0],
+  });
 
   useEffect(() => {
     resumeApi
@@ -51,6 +56,7 @@ export default function PreviewPage() {
       await exportPdfFile({
         resume: resumeRecord.data,
         fileName: createPdfFileName(resumeRecord.data.personal.fullName),
+        pagination: paginationInfo,
       });
       setFeedback("PDF gerado e enviado para download.");
     } catch (error) {
@@ -65,13 +71,13 @@ export default function PreviewPage() {
       actions={
         <>
           <Button as={Link} to={appRoutes.dashboard} variant="ghost">
-            Dashboard
+            Painel
           </Button>
           <Button as={Link} to={getEditorRoute(id)} variant="secondary">
             Voltar para o editor
           </Button>
-          <Button disabled={isExporting} onClick={handleExport} variant="primary">
-            {isExporting ? "Gerando PDF..." : "Exportar PDF"}
+          <Button disabled={isExporting || !paginationInfo.isReady} onClick={handleExport} variant="primary">
+            {isExporting ? "Gerando PDF..." : paginationInfo.isReady ? "Exportar PDF" : "Preparando paginas..."}
           </Button>
         </>
       }
@@ -100,7 +106,7 @@ export default function PreviewPage() {
             title={resumeRecord.title}
           />
           <Suspense fallback={<PreviewFallbackCard />}>
-            <ResumePreview compact resume={resumeRecord.data} />
+            <ResumePreview compact onPaginationChange={setPaginationInfo} resume={resumeRecord.data} />
           </Suspense>
         </div>
       )}

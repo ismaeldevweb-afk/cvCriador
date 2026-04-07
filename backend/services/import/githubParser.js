@@ -150,97 +150,106 @@ export async function parseGithubProfile(username = "") {
     throw createHttpError("Informe um username publico valido do GitHub.", 400);
   }
 
-  const encodedUsername = encodePathSegment(normalizedUsername);
-  const user = await fetchGitHubJson(`/users/${encodedUsername}`);
-  const repositories = await fetchGitHubJson(`/users/${encodedUsername}/repos?sort=updated&per_page=12&type=owner`);
-  const topRepositories = [...repositories]
-    .filter((repo) => !repo.fork)
-    .sort((left, right) => {
-      const leftScore = (left.stargazers_count ?? 0) * 4 + (left.forks_count ?? 0) * 2 + Date.parse(left.updated_at ?? 0) / 1e11;
-      const rightScore = (right.stargazers_count ?? 0) * 4 + (right.forks_count ?? 0) * 2 + Date.parse(right.updated_at ?? 0) / 1e11;
-      return rightScore - leftScore;
-    })
-    .slice(0, 4);
+  try {
+    const encodedUsername = encodePathSegment(normalizedUsername);
+    const user = await fetchGitHubJson(`/users/${encodedUsername}`);
+    const repositoriesPayload = await fetchGitHubJson(`/users/${encodedUsername}/repos?sort=updated&per_page=12&type=owner`);
+    const repositories = Array.isArray(repositoriesPayload) ? repositoriesPayload : [];
+    const topRepositories = repositories
+      .filter((repo) => repo && typeof repo === "object" && !repo.fork)
+      .sort((left, right) => {
+        const leftScore = (left.stargazers_count ?? 0) * 4 + (left.forks_count ?? 0) * 2 + Date.parse(left.updated_at ?? 0) / 1e11;
+        const rightScore = (right.stargazers_count ?? 0) * 4 + (right.forks_count ?? 0) * 2 + Date.parse(right.updated_at ?? 0) / 1e11;
+        return rightScore - leftScore;
+      })
+      .slice(0, 4);
 
-  const repositoryDetails = await Promise.all(
-    topRepositories.map(async (repo) => {
-      const [languages, readme] = await Promise.all([
-        fetch(repo.languages_url, { headers: GITHUB_HEADERS }).then((response) => (response.ok ? response.json() : {})).catch(() => ({})),
-        fetchRepositoryReadme(normalizedUsername, repo.name).catch(() => ""),
-      ]);
+    const repositoryDetails = await Promise.all(
+      topRepositories.map(async (repo) => {
+        const [languages, readme] = await Promise.all([
+          fetch(repo.languages_url, { headers: GITHUB_HEADERS }).then((response) => (response.ok ? response.json() : {})).catch(() => ({})),
+          fetchRepositoryReadme(normalizedUsername, repo.name).catch(() => ""),
+        ]);
+
+        return {
+          repo,
+          languages: Object.keys(languages ?? {}),
+          readme,
+        };
+      }),
+    );
+
+    const skills = uniqueKeywords([
+      ...repositoryDetails.flatMap((item) => item.languages),
+      ...repositoryDetails.flatMap((item) => item.repo.topics ?? []),
+      ...repositoryDetails.flatMap((item) => extractReadmeKeywords(item.readme)),
+    ]);
+
+    const projects = repositoryDetails.map(({ repo, languages, readme }) => {
+      const technologies = uniqueKeywords([...(repo.topics ?? []), ...languages]).slice(0, 6).join(", ");
+      const readmeSummary = summarizeReadme(readme);
+      const description = [
+        compactText(repo.description),
+        technologies ? `Stack principal: ${technologies}.` : "",
+        readmeSummary,
+      ]
+        .filter(Boolean)
+        .join(" ");
 
       return {
-        repo,
-        languages: Object.keys(languages ?? {}),
-        readme,
+        name: formatRepoName(repo.name),
+        description: compactText(description),
+        technologies,
+        link: repo.html_url,
       };
-    }),
-  );
+    });
 
-  const skills = uniqueKeywords([
-    ...repositoryDetails.flatMap((item) => item.languages),
-    ...repositoryDetails.flatMap((item) => item.repo.topics ?? []),
-    ...repositoryDetails.flatMap((item) => extractReadmeKeywords(item.readme)),
-  ]);
+    const profileUrl = user.html_url || `https://github.com/${normalizedUsername}`;
+    const blogUrl = normalizeUrl(user.blog);
+    const linkedinUrl = /linkedin\.com/i.test(blogUrl) ? blogUrl : "";
+    const portfolioUrl = blogUrl && !linkedinUrl ? blogUrl : "";
+    const fullName = compactText(user.name) || normalizedUsername;
 
-  const projects = repositoryDetails.map(({ repo, languages, readme }) => {
-    const technologies = uniqueKeywords([...(repo.topics ?? []), ...languages]).slice(0, 6).join(", ");
-    const readmeSummary = summarizeReadme(readme);
-    const description = [
-      compactText(repo.description),
-      technologies ? `Stack principal: ${technologies}.` : "",
-      readmeSummary,
-    ]
-      .filter(Boolean)
-      .join(" ");
-
-    return {
-      name: formatRepoName(repo.name),
-      description: compactText(description),
-      technologies,
-      link: repo.html_url,
-    };
-  });
-
-  const profileUrl = user.html_url || `https://github.com/${normalizedUsername}`;
-  const blogUrl = normalizeUrl(user.blog);
-  const linkedinUrl = /linkedin\.com/i.test(blogUrl) ? blogUrl : "";
-  const portfolioUrl = blogUrl && !linkedinUrl ? blogUrl : "";
-  const fullName = compactText(user.name) || normalizedUsername;
-
-  const normalizedResume = sanitizePartialResume({
-    title: fullName ? `Curriculo ${fullName}` : "",
-    personal: {
-      fullName,
-      role: splitBioRole(user.bio) || "Profissional de tecnologia",
-      city: compactText(user.location),
-      photo: compactText(user.avatar_url),
-      github: profileUrl,
-      portfolio: portfolioUrl,
-      linkedin: linkedinUrl,
-    },
-    summary: buildGithubSummary({
-      user,
-      projects,
+    const normalizedResume = sanitizePartialResume({
+      title: fullName ? `Curriculo ${fullName}` : "",
+      personal: {
+        fullName,
+        role: splitBioRole(user.bio) || "Profissional de tecnologia",
+        city: compactText(user.location),
+        photo: compactText(user.avatar_url),
+        github: profileUrl,
+        portfolio: portfolioUrl,
+        linkedin: linkedinUrl,
+      },
+      summary: buildGithubSummary({
+        user,
+        projects,
+        skills,
+      }),
       skills,
-    }),
-    skills,
-    projects,
-    additionalInfo:
-      user.followers || user.public_repos
-        ? `GitHub: ${user.public_repos ?? 0} repositorios publicos e ${user.followers ?? 0} seguidores.`
-        : "",
-  });
+      projects,
+      additionalInfo:
+        user.followers || user.public_repos
+          ? `GitHub: ${user.public_repos ?? 0} repositorios publicos e ${user.followers ?? 0} seguidores.`
+          : "",
+    });
 
-  return createImportResult({
-    sourceType: "github",
-    sourceLabel: "GitHub",
-    normalizedResume,
-    parser: "github-public-api",
-    notes: [
-      "GitHub foi tratado como reforco tecnico para projetos, skills e links profissionais.",
-      "Experiencia profissional formal nao foi preenchida automaticamente a partir do GitHub.",
-    ],
-    warnings: repositoryDetails.length === 0 ? ["Nenhum repositorio relevante foi encontrado para enriquecer projetos."] : [],
-  });
+    return createImportResult({
+      sourceType: "github",
+      sourceLabel: "GitHub",
+      normalizedResume,
+      parser: "github-public-api",
+      notes: [
+        "GitHub foi tratado como reforco tecnico para projetos, skills e links profissionais.",
+        "Experiencia profissional formal nao foi preenchida automaticamente a partir do GitHub.",
+      ],
+      warnings: repositoryDetails.length === 0 ? ["Nenhum repositorio relevante foi encontrado para enriquecer projetos."] : [],
+    });
+  } catch (error) {
+    if (error?.status) {
+      throw error;
+    }
+
+    throw createHttpError("Nao foi possivel importar o perfil do GitHub agora. Tente novamente em alguns instantes.", 503);
+  }
 }
