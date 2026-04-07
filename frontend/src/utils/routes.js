@@ -1,7 +1,7 @@
 export const appRoutes = {
   home: "/",
   dashboard: "/dashboard",
-  templates: "/templates",
+  templates: "/templates#template-selector",
   editorNew: "/editor/new",
 };
 
@@ -16,27 +16,27 @@ export function getPreviewRoute(id) {
 export const footerNavItems = [
   {
     to: appRoutes.home,
-    label: "Inicio",
+    label: "Principal",
   },
   {
     to: appRoutes.templates,
-    label: "Templates",
+    label: "Escolher template",
   },
   {
     to: appRoutes.dashboard,
-    label: "Dashboard",
+    label: "Painel",
   },
 ];
 
 export const workspaceNavItems = [
   {
     to: appRoutes.templates,
-    label: "Templates",
-    matches: (pathname) => pathname === appRoutes.templates || pathname === appRoutes.editorNew,
+    label: "Novo curriculo",
+    matches: (pathname) => pathname === "/templates" || pathname === appRoutes.editorNew,
   },
   {
     to: appRoutes.dashboard,
-    label: "Dashboard",
+    label: "Painel",
     matches: (pathname) => pathname === appRoutes.dashboard,
   },
 ];

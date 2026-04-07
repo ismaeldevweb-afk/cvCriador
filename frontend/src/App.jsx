@@ -1,6 +1,7 @@
 import { Suspense, lazy } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
-import TemplateSelectionPage from "./pages/TemplateSelectionPage";
+import { hasSavedResumes } from "./services/resumeApi";
+import { appRoutes } from "./utils/routes";
 
 const DashboardPage = lazy(() => import("./pages/DashboardPage"));
 const EditorPage = lazy(() => import("./pages/EditorPage"));
@@ -24,6 +25,14 @@ function RouteFallback() {
   );
 }
 
+function HomeRoute() {
+  if (hasSavedResumes()) {
+    return <Navigate replace to={appRoutes.dashboard} />;
+  }
+
+  return <LandingPage />;
+}
+
 export default function App() {
   const location = useLocation();
 
@@ -31,9 +40,9 @@ export default function App() {
     <Suspense fallback={<RouteFallback />}>
       <div className="route-fade-enter" key={`${location.pathname}${location.search}`}>
         <Routes location={location}>
-          <Route path="/" element={<LandingPage />} />
+          <Route path="/" element={<HomeRoute />} />
+          <Route path="/templates" element={<LandingPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/templates" element={<TemplateSelectionPage />} />
           <Route path="/editor/new" element={<EditorPage />} />
           <Route path="/editor/:id" element={<EditorPage />} />
           <Route path="/preview/:id" element={<PreviewPage />} />

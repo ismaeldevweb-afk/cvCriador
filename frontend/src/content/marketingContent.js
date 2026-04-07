@@ -24,47 +24,6 @@ export const marketingContent = {
       description: "Arquivos prontos para impressao e envio profissional.",
     },
   ],
-  productPreview: {
-    eyebrow: "Preview do produto",
-    description:
-      "Interface pensada para clareza, velocidade de preenchimento e apresentacao profissional em qualquer tela.",
-    badge: "13 templates",
-    liveLabel: "Live",
-    editorLabel: "Editor",
-  },
-  templates: [
-    "Moderno",
-    "Classico",
-    "Executivo",
-    "Editorial",
-    "Minimalista",
-    "Compacto",
-    "Destaque",
-    "Timeline",
-    "Atelier",
-    "Horizonte",
-    "Noir",
-    "Mosaico",
-    "Ledger",
-  ],
-  audience: {
-    title: "Para quem e",
-    items: [
-      "Entrada no mercado e estagios",
-      "Transicao estrategica de carreira",
-      "Freelancers e profissionais liberais",
-      "Especialistas e lideranca",
-    ],
-  },
-  steps: {
-    title: "Como funciona",
-    items: [
-      "Comece pela escolha do template ideal para o contexto da vaga.",
-      "Construa o curriculo com preview ao vivo enquanto preenche e refina o conteudo.",
-      "Salve a versao e acompanhe tudo pelo dashboard local.",
-      "Gere o PDF quando estiver pronto para enviar.",
-    ],
-  },
   benefits: [
     {
       eyebrow: "Experiencia Fluida",

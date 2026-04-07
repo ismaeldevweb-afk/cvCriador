@@ -6,25 +6,50 @@ function isLocalApiBase(value = "") {
   return /^https?:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?(?:\/|$)/i.test(value);
 }
 
+function isLocalRuntimeHost() {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  return /^(localhost|127\.0\.0\.1)$/i.test(window.location.hostname);
+}
+
+function joinApiBase(base = "", path = "") {
+  const normalizedBase = normalizeApiBase(base);
+  const normalizedPath = `/${String(path ?? "").trim().replace(/^\/+/, "")}`;
+  return `${normalizedBase}${normalizedPath}`;
+}
+
 function resolveApiBase() {
   const configuredApiBase = normalizeApiBase(import.meta.env.VITE_API_URL);
+  const configuredProxyTarget = normalizeApiBase(import.meta.env.VITE_API_PROXY_TARGET);
+  const isLocalRuntime = isLocalRuntimeHost();
 
   if (configuredApiBase) {
-    if (import.meta.env.PROD && isLocalApiBase(configuredApiBase)) {
+    if (import.meta.env.DEV && configuredApiBase.startsWith("/") && configuredProxyTarget) {
+      return joinApiBase(configuredProxyTarget, configuredApiBase);
+    }
+
+    if (import.meta.env.PROD && isLocalApiBase(configuredApiBase) && !isLocalRuntime) {
       throw new Error("VITE_API_URL cannot point to localhost in production.");
     }
 
     return configuredApiBase;
   }
 
-  if (import.meta.env.DEV) {
+  if (import.meta.env.DEV || isLocalRuntime) {
     return "/api";
   }
 
-  throw new Error("VITE_API_URL must be configured for production deployments.");
+  if (typeof window !== "undefined") {
+    console.warn("VITE_API_URL is not configured. Falling back to same-origin /api.");
+  }
+
+  return "/api";
 }
 
 export const API_BASE = resolveApiBase();
+const DEV_PROXY_TARGET = import.meta.env.DEV ? normalizeApiBase(import.meta.env.VITE_API_PROXY_TARGET) || "http://localhost:4000" : "";
 
 export class ApiError extends Error {
   constructor(message, { status, data, path } = {}) {
@@ -34,6 +59,14 @@ export class ApiError extends Error {
     this.data = data ?? null;
     this.path = path ?? "";
   }
+}
+
+function createLocalApiUnavailableMessage() {
+  return `A API local nao respondeu. Inicie ou reinicie o backend em ${DEV_PROXY_TARGET} e tente novamente.`;
+}
+
+function isProxyFailureMessage(message = "") {
+  return /ECONNREFUSED|socket hang up|proxy error|Error occurred while trying to proxy/i.test(String(message ?? ""));
 }
 
 export function buildApiUrl(path = "") {
@@ -52,9 +85,18 @@ async function parseError(response) {
     };
   }
 
+  const text = (await response.text().catch(() => "")) || "Falha na comunicacao com a API.";
+
+  if (import.meta.env.DEV && API_BASE === "/api" && response.status >= 500 && isProxyFailureMessage(text)) {
+    return {
+      data: null,
+      message: createLocalApiUnavailableMessage(),
+    };
+  }
+
   return {
     data: null,
-    message: (await response.text().catch(() => "")) || "Falha na comunicacao com a API.",
+    message: text,
   };
 }
 
@@ -65,10 +107,24 @@ export async function apiRequest(path, options = {}) {
     headers.set("Content-Type", "application/json");
   }
 
-  const response = await fetch(buildApiUrl(path), {
-    ...options,
-    headers,
-  });
+  let response;
+
+  try {
+    response = await fetch(buildApiUrl(path), {
+      ...options,
+      headers,
+    });
+  } catch (error) {
+    if (import.meta.env.DEV && API_BASE === "/api") {
+      throw new ApiError(createLocalApiUnavailableMessage(), {
+        status: 503,
+        data: null,
+        path,
+      });
+    }
+
+    throw error;
+  }
 
   if (!response.ok) {
     const { message, data } = await parseError(response);

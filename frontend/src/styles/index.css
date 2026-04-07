@@ -90,3 +90,71 @@ select {
 ::-webkit-scrollbar-track {
   background: rgba(255, 255, 255, 0.45);
 }
+
+.resume-page-preview {
+  flex: none;
+}
+
+.resume-page-shell {
+  background: #ffffff;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.resume-page-shell--shadow {
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.14);
+}
+
+.resume-page-body {
+  background: #ffffff;
+  box-sizing: border-box;
+  height: 100%;
+  width: 100%;
+}
+
+.resume-page-viewport {
+  position: relative;
+  width: 100%;
+}
+
+.resume-page-content {
+  width: 100%;
+}
+
+.resume-page-content > article {
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  min-height: 100%;
+}
+
+.resume-break-block {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.template-picker-carousel {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  scroll-padding-inline: 1rem;
+  padding-inline: 0.25rem;
+}
+
+.template-picker-carousel::-webkit-scrollbar {
+  display: none;
+}
+
+.template-picker-controls {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.template-picker-controls::-webkit-scrollbar {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .template-picker-carousel {
+    padding-inline: 0;
+    scroll-padding-inline: 1.25rem;
+  }
+}
