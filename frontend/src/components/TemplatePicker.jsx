@@ -82,6 +82,7 @@ function TemplatePreview({ isActive, template, mode, theme }) {
 export default function TemplatePicker({ value, onChange, mode = "list" }) {
   const isGrid = mode === "grid";
   const isCarousel = mode === "carousel";
+  const carouselRef = useRef(null);
   const cardRefs = useRef(new Map());
   const selectedTemplate = templateOptions.find((template) => template.id === value) ?? templateOptions[0];
   const activeIndex = Math.max(
@@ -95,11 +96,17 @@ export default function TemplatePicker({ value, onChange, mode = "list" }) {
       return;
     }
 
+    const carouselNode = carouselRef.current;
     const activeNode = cardRefs.current.get(value);
-    activeNode?.scrollIntoView({
+
+    if (!carouselNode || !activeNode) {
+      return;
+    }
+
+    const nextLeft = activeNode.offsetLeft - (carouselNode.clientWidth - activeNode.clientWidth) / 2;
+    carouselNode.scrollTo({
       behavior: "smooth",
-      block: "nearest",
-      inline: "center",
+      left: Math.max(0, nextLeft),
     });
   }, [isCarousel, value]);
 
@@ -324,6 +331,7 @@ export default function TemplatePicker({ value, onChange, mode = "list" }) {
               className="template-picker-carousel flex w-full min-w-0 snap-x snap-mandatory gap-4 overflow-x-auto pb-2 pt-2 scroll-smooth sm:gap-5 sm:pb-3"
               role="listbox"
               aria-label="Escolha um template"
+              ref={carouselRef}
             >
               {cards}
             </div>

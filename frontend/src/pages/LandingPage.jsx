@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import AppFooter from "../components/AppFooter";
 import { Link } from "react-router-dom";
 import Button from "../components/Button";
+import MobileMenuButton from "../components/MobileMenuButton";
 import Panel from "../components/Panel";
 import TemplatePicker from "../components/TemplatePicker";
 import { marketingContent } from "../content/marketingContent";
@@ -299,40 +300,180 @@ function TemplateCarouselMock({ templates }) {
   );
 }
 
+const landingNavItems = [
+  { href: "#inicio", label: "Inicio" },
+  { href: "#template-selector", label: "Templates" },
+  { href: "#diferenciais", label: "Diferenciais" },
+  { href: "#painel-local", label: "Painel" },
+];
+
+const sectionScrollGap = 12;
+
 export default function LandingPage() {
   const { benefits, brand, finalCta, hero, quickProofs } = marketingContent;
   const [selectedTemplate, setSelectedTemplate] = useState(templateOptions[0]?.id ?? "modern");
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const headerRef = useRef(null);
   const selectedTemplateMeta = templateOptions.find((template) => template.id === selectedTemplate) ?? templateOptions[0];
   const selectedTheme = getTemplateShowcaseTheme(selectedTemplateMeta?.id);
   const createTarget = `${appRoutes.editorNew}?${new URLSearchParams({ template: selectedTemplate, fresh: "1" }).toString()}`;
 
+  function scrollToSection(hash, behavior = "smooth") {
+    const sectionId = hash.replace(/^#/, "");
+    const target = document.getElementById(sectionId);
+
+    if (!target) {
+      return;
+    }
+
+    const headerHeight = headerRef.current?.getBoundingClientRect().height ?? 0;
+    const nextTop = target.getBoundingClientRect().top + window.scrollY - headerHeight - sectionScrollGap;
+
+    window.scrollTo({
+      top: Math.max(0, nextTop),
+      behavior,
+    });
+  }
+
+  function handleSectionLinkClick(event, hash) {
+    event.preventDefault();
+
+    if (window.location.hash !== hash) {
+      window.history.pushState(null, "", hash);
+    }
+
+    setIsMobileMenuOpen(false);
+    scrollToSection(hash, window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth");
+  }
+
+  useLayoutEffect(() => {
+    if (!window.location.hash) {
+      return undefined;
+    }
+
+    window.scrollTo({ top: 0, behavior: "auto" });
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        scrollToSection(window.location.hash, "auto");
+      });
+    });
+  }, []);
+
+  useEffect(() => {
+    const syncHashPosition = () => {
+      if (!window.location.hash) {
+        return;
+      }
+
+      window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => {
+          scrollToSection(window.location.hash, "auto");
+        });
+      });
+    };
+
+    if (window.location.hash) {
+      syncHashPosition();
+    }
+
+    if (document.readyState !== "complete") {
+      window.addEventListener("load", syncHashPosition);
+    }
+
+    window.addEventListener("hashchange", syncHashPosition);
+    window.addEventListener("resize", syncHashPosition);
+
+    return () => {
+      window.removeEventListener("load", syncHashPosition);
+      window.removeEventListener("hashchange", syncHashPosition);
+      window.removeEventListener("resize", syncHashPosition);
+    };
+  }, []);
+
   return (
-    <div className="relative flex min-h-screen flex-col overflow-hidden text-ink">
-      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-80 bg-[radial-gradient(circle_at_top,rgba(15,118,110,0.14),transparent_58%)]" />
-      <div aria-hidden className="pointer-events-none absolute right-[-8rem] top-20 h-72 w-72 rounded-full bg-amber-100/70 blur-3xl" />
+    <div className="relative flex min-h-screen flex-col text-ink">
+      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute inset-x-0 top-0 h-80 bg-[radial-gradient(circle_at_top,rgba(15,118,110,0.14),transparent_58%)]" />
+        <div className="absolute right-[-8rem] top-20 h-72 w-72 rounded-full bg-amber-100/70 blur-3xl" />
+      </div>
 
-      <header className="sticky top-0 z-30 border-b border-white/70 bg-white/72 backdrop-blur-2xl">
-        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
-          <Link className="flex items-center gap-3 text-xs font-semibold tracking-[0.18em] sm:text-sm sm:tracking-[0.24em]" to={appRoutes.home}>
-            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#0f172a_0%,#1f2937_100%)] text-white shadow-[0_16px_35px_rgba(15,23,42,0.20)]">
-              CV
-            </span>
-            <span className="hidden sm:block">{brand.name}</span>
-          </Link>
+      <header ref={headerRef} className="sticky top-0 z-30 border-b border-white/70 bg-white/72 backdrop-blur-2xl">
+        <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between gap-4">
+            <Link className="flex items-center gap-3 text-xs font-semibold tracking-[0.18em] sm:text-sm sm:tracking-[0.24em]" to={appRoutes.home}>
+              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#0f172a_0%,#1f2937_100%)] text-white shadow-[0_16px_35px_rgba(15,23,42,0.20)]">
+                CV
+              </span>
+              <span className="hidden sm:block">{brand.name}</span>
+            </Link>
 
-          <div className="grid w-full grid-cols-2 gap-2 sm:w-auto sm:flex sm:items-center sm:gap-3">
-            <Button as={Link} className="w-full min-w-0 px-4 py-3 text-[13px] sm:w-auto sm:px-5 sm:text-sm" to={appRoutes.dashboard} variant="ghost">
-              Painel
-            </Button>
-            <Button as="a" className="w-full min-w-0 px-4 py-3 text-[13px] sm:w-auto sm:px-5 sm:text-sm" href="#template-selector" variant="primary">
-              Escolher template
-            </Button>
+            <div className="hidden min-w-0 flex-1 justify-end lg:flex">
+              <nav aria-label="Navegacao principal" className="flex flex-wrap items-center gap-2 rounded-full border border-white/70 bg-white/75 p-2 shadow-[0_14px_35px_rgba(15,23,42,0.06)]">
+                {landingNavItems.map((item) => (
+                  <a
+                    key={item.href}
+                    className="rounded-full px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-ink"
+                    href={item.href}
+                    onClick={(event) => handleSectionLinkClick(event, item.href)}
+                  >
+                    {item.label}
+                  </a>
+                ))}
+              </nav>
+            </div>
+
+            <MobileMenuButton
+              className="sm:hidden"
+              controls="landing-mobile-menu"
+              isOpen={isMobileMenuOpen}
+              onClick={() => setIsMobileMenuOpen((current) => !current)}
+            />
           </div>
+
+          <nav aria-label="Navegacao principal" className="mt-4 hidden sm:flex lg:hidden">
+            <div className="flex flex-wrap items-center gap-2 rounded-full border border-white/70 bg-white/75 p-2 shadow-[0_14px_35px_rgba(15,23,42,0.06)]">
+              {landingNavItems.map((item) => (
+                <a
+                  key={item.href}
+                  className="rounded-full px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-ink"
+                  href={item.href}
+                  onClick={(event) => handleSectionLinkClick(event, item.href)}
+                >
+                  {item.label}
+                </a>
+              ))}
+            </div>
+          </nav>
+
+          {isMobileMenuOpen ? (
+            <div
+              className="mt-4 space-y-3 rounded-[28px] border border-white/80 bg-white/92 p-3 shadow-[0_24px_60px_rgba(15,23,42,0.1)] sm:hidden"
+              id="landing-mobile-menu"
+            >
+              <div className="rounded-[22px] border border-white/80 bg-[linear-gradient(145deg,rgba(248,250,252,0.94),rgba(255,255,255,0.98))] px-4 py-3">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.26em] text-slate-500">Menu</p>
+                <p className="mt-1 text-sm leading-6 text-slate-700">Navegue pela home ou pule direto para o seletor de templates.</p>
+              </div>
+
+              <nav aria-label="Navegacao principal" className="grid gap-2">
+                {landingNavItems.map((item) => (
+                  <a
+                    key={item.href}
+                    className="rounded-[20px] border border-slate-200 bg-slate-50/80 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-white hover:text-ink"
+                    href={item.href}
+                    onClick={(event) => handleSectionLinkClick(event, item.href)}
+                  >
+                    {item.label}
+                  </a>
+                ))}
+              </nav>
+            </div>
+          ) : null}
         </div>
       </header>
 
       <main className="flex-1">
-        <section className="mx-auto max-w-7xl px-4 pb-16 pt-10 sm:px-6 sm:pb-20 sm:pt-14 lg:px-8 lg:pb-24 lg:pt-16">
+        <section className="mx-auto max-w-7xl px-4 pb-12 pt-10 sm:px-6 sm:pb-14 sm:pt-14 lg:px-8 lg:pb-16 lg:pt-16" id="inicio">
           <div className="grid gap-10 sm:gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(360px,520px)] lg:items-center">
             <div className="max-w-5xl">
               <div className="inline-flex max-w-full flex-wrap items-center gap-2 rounded-full border border-white/80 bg-white/80 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 shadow-soft sm:text-xs sm:tracking-[0.28em]">
@@ -348,7 +489,13 @@ export default function LandingPage() {
               </p>
 
               <div className="mt-10 flex flex-col gap-4 sm:flex-row">
-                <Button as="a" className="w-full px-7 py-4 sm:w-auto" href="#template-selector" variant="primary">
+                <Button
+                  as="a"
+                  className="w-full px-7 py-4 sm:w-auto"
+                  href="#template-selector"
+                  onClick={(event) => handleSectionLinkClick(event, "#template-selector")}
+                  variant="primary"
+                >
                   {hero.primaryCta}
                 </Button>
                 <Button as={Link} className="w-full px-7 py-4 sm:w-auto" to={appRoutes.dashboard} variant="secondary">
@@ -372,11 +519,10 @@ export default function LandingPage() {
               </div>
             </div>
           </div>
+        </section>
 
-          <div
-            className="mt-12 scroll-mt-28 rounded-[28px] border border-white/80 bg-[linear-gradient(145deg,rgba(255,255,255,0.96),rgba(248,250,252,0.9))] p-4 shadow-soft backdrop-blur-2xl sm:mt-14 sm:rounded-[32px] sm:p-6 lg:p-8"
-            id="template-selector"
-          >
+        <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 sm:pb-20 lg:px-8 lg:pb-24" id="template-selector">
+          <div className="rounded-[28px] border border-white/80 bg-[linear-gradient(145deg,rgba(255,255,255,0.96),rgba(248,250,252,0.9))] p-4 shadow-soft backdrop-blur-2xl sm:rounded-[32px] sm:p-6 lg:p-8">
             <div className="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_360px]">
               <div className="min-w-0">
                 <SectionHeader
@@ -454,7 +600,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className="border-y border-slate-200/80 bg-white/55">
+        <section className="border-y border-slate-200/80 bg-white/55" id="diferenciais">
           <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
             <SectionHeader
               description="Os blocos abaixo concentram os diferenciais principais da plataforma, sem misturar essa leitura com a etapa de escolha do template."
@@ -487,7 +633,13 @@ export default function LandingPage() {
                     {finalCta.description}
                   </p>
                 </div>
-                <Button as="a" className="w-full px-7 py-4 sm:w-auto" href="#template-selector" variant="secondary">
+                <Button
+                  as="a"
+                  className="w-full px-7 py-4 sm:w-auto"
+                  href="#template-selector"
+                  onClick={(event) => handleSectionLinkClick(event, "#template-selector")}
+                  variant="secondary"
+                >
                   {finalCta.cta}
                 </Button>
               </div>
@@ -495,7 +647,10 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className="border-t border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.88),rgba(248,250,252,0.96))]">
+        <section
+          className="border-t border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.88),rgba(248,250,252,0.96))]"
+          id="painel-local"
+        >
           <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
             <Panel className="overflow-hidden border-white/90 bg-[linear-gradient(145deg,rgba(255,255,255,0.98),rgba(248,250,252,0.92))] p-6 shadow-[0_24px_60px_rgba(15,23,42,0.08)] sm:p-8">
               <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
