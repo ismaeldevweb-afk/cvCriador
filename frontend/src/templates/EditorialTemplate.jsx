@@ -37,9 +37,9 @@ export default function EditorialTemplate({ resume, theme = buildThemeTokens(res
             ) : null}
           </div>
           <div>
-            <h1 className="max-w-4xl font-display text-5xl leading-[0.96] tracking-tight text-slate-950 md:text-6xl">
+            <p className="max-w-4xl font-display text-5xl leading-[0.96] tracking-tight text-slate-950 md:text-6xl">
               {snapshot.personal.fullName || "Seu nome"}
-            </h1>
+            </p>
             <p className="mt-5 max-w-3xl text-lg leading-8 text-slate-600">
               {snapshot.personal.role || "Narrativa profissional com repertorio, clareza e diferencas bem comunicadas."}
             </p>
@@ -48,7 +48,7 @@ export default function EditorialTemplate({ resume, theme = buildThemeTokens(res
       </header>
 
       <div className="grid gap-0 lg:grid-cols-[220px_minmax(0,1fr)]">
-        <aside className="border-r p-8" style={{ borderColor: theme.lineColor }}>
+        <div className="border-r p-8" style={{ borderColor: theme.lineColor }}>
           <div className="space-y-8">
             <MetaSection theme={theme} title="Contato">
               <div className="space-y-2 text-sm leading-7 text-slate-600">
@@ -88,9 +88,9 @@ export default function EditorialTemplate({ resume, theme = buildThemeTokens(res
               </div>
             </MetaSection>
           </div>
-        </aside>
+        </div>
 
-        <main className="space-y-8 p-8 lg:p-10">
+        <div className="space-y-8 p-8 lg:p-10">
           <section className="rounded-[26px] border bg-white px-6 py-6" style={{ borderColor: theme.lineColor }}>
             <p className="text-xl leading-9 text-slate-700">
               {snapshot.summary || "Use este espaco para sintetizar contexto, diferenciacao e o tipo de valor que sua experiencia entrega."}
@@ -177,7 +177,7 @@ export default function EditorialTemplate({ resume, theme = buildThemeTokens(res
               </section>
             ) : null}
           </div>
-        </main>
+        </div>
       </div>
     </article>
   );

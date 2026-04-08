@@ -49,9 +49,9 @@ export default function AtelierTemplate({ resume, theme = buildThemeTokens(resum
             <p className="text-xs font-semibold uppercase tracking-[0.34em]" style={{ color: theme.primaryColor }}>
               {snapshot.title || "Atelier profissional"}
             </p>
-            <h1 className="mt-6 max-w-4xl font-semibold tracking-tight text-slate-950" style={{ fontSize: theme.titleSize }}>
+            <p className="mt-6 max-w-4xl font-semibold tracking-tight text-slate-950" style={{ fontSize: theme.titleSize }}>
               {snapshot.personal.fullName || "Seu nome"}
-            </h1>
+            </p>
             <p className="mt-4 max-w-3xl text-lg leading-8 text-slate-600">
               {snapshot.personal.role || "Narrativa visual com refinamento editorial para posicionar repertorio, autoria e direcao criativa."}
             </p>
@@ -77,7 +77,7 @@ export default function AtelierTemplate({ resume, theme = buildThemeTokens(resum
       </header>
 
       <div className="grid gap-6 p-8 lg:grid-cols-[1.08fr_0.92fr] lg:p-10">
-        <main className="space-y-6">
+        <div className="space-y-6">
           <Surface theme={theme} title="Experiencia profissional">
             <div className="space-y-5">
               {snapshot.experience.map((item) => (
@@ -115,9 +115,9 @@ export default function AtelierTemplate({ resume, theme = buildThemeTokens(resum
               ))}
             </div>
           </Surface>
-        </main>
+        </div>
 
-        <aside className="space-y-6">
+        <div className="space-y-6">
           <Surface theme={theme} title="Objetivo">
             <p className="text-[15px] leading-7 text-slate-700">
               {snapshot.objective || "Descreva a proxima fase desejada da carreira e o tipo de contexto em que voce quer criar impacto."}
@@ -174,7 +174,7 @@ export default function AtelierTemplate({ resume, theme = buildThemeTokens(resum
               <p className="text-[15px] leading-7 text-slate-700">{snapshot.additionalInfo}</p>
             </Surface>
           ) : null}
-        </aside>
+        </div>
       </div>
     </article>
   );

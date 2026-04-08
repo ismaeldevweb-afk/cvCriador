@@ -27,9 +27,9 @@ export default function ClassicTemplate({ resume, theme = buildThemeTokens(resum
         </p>
         <div className="mt-4 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <h1 className="font-semibold tracking-tight" style={{ fontSize: theme.titleSize }}>
+            <p className="font-semibold tracking-tight" style={{ fontSize: theme.titleSize }}>
               {snapshot.personal.fullName || "Seu nome"}
-            </h1>
+            </p>
             <p className="mt-3 text-lg text-slate-600">{snapshot.personal.role || "Seu cargo principal"}</p>
           </div>
           <div className="max-w-[300px] text-sm leading-6 text-slate-500 md:text-right">

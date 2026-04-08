@@ -18,19 +18,19 @@ export default function ArraySectionEditor({
           <h3 className="text-lg font-semibold text-ink">{title}</h3>
           <p className="mt-1 text-sm leading-6 text-slate-500">{description}</p>
         </div>
-        <Button onClick={onAdd} variant="secondary">
+        <Button className="w-full sm:w-auto" onClick={onAdd} variant="secondary">
           {addLabel}
         </Button>
       </div>
 
       <div className="space-y-4">
         {items.map((item, index) => (
-          <div key={item.id} className="rounded-[24px] border border-slate-200 bg-white p-5">
-            <div className="mb-4 flex items-center justify-between">
+          <div key={item.id} className="rounded-[24px] border border-slate-200 bg-white p-4 sm:p-5">
+            <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <span className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
                 Item {String(index + 1).padStart(2, "0")}
               </span>
-              <button className="text-sm font-semibold text-rose-600" onClick={() => onRemove(item.id)} type="button">
+              <button className="self-start text-sm font-semibold text-rose-600 sm:self-auto" onClick={() => onRemove(item.id)} type="button">
                 Remover
               </button>
             </div>
@@ -57,4 +57,3 @@ export default function ArraySectionEditor({
     </div>
   );
 }
-

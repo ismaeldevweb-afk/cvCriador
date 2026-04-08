@@ -42,9 +42,9 @@ export default function TimelineTemplate({ resume, theme = buildThemeTokens(resu
             <p className="text-xs font-semibold uppercase tracking-[0.34em]" style={{ color: theme.primaryColor }}>
               {snapshot.title || "Template timeline"}
             </p>
-            <h1 className="mt-5 font-semibold tracking-tight text-slate-950" style={{ fontSize: theme.titleSize }}>
+            <p className="mt-5 font-semibold tracking-tight text-slate-950" style={{ fontSize: theme.titleSize }}>
               {snapshot.personal.fullName || "Seu nome"}
-            </h1>
+            </p>
             <p className="mt-3 max-w-3xl text-lg leading-8 text-slate-600">
               {snapshot.personal.role || "Historico profissional organizado em linha do tempo com leitura clara e sofisticada."}
             </p>
@@ -59,7 +59,7 @@ export default function TimelineTemplate({ resume, theme = buildThemeTokens(resu
       </header>
 
       <div className="grid gap-8 p-8 lg:grid-cols-[300px_minmax(0,1fr)] lg:p-10">
-        <aside className="space-y-5">
+        <div className="space-y-5">
           <section className="rounded-[24px] border bg-slate-50 p-5" style={{ borderColor: theme.lineColor }}>
             <SectionHeading theme={theme}>Resumo profissional</SectionHeading>
             <p className="mt-4 text-[15px] leading-7 text-slate-700">
@@ -113,9 +113,9 @@ export default function TimelineTemplate({ resume, theme = buildThemeTokens(resu
               <p className="mt-4 text-[15px] leading-7 text-slate-700">{snapshot.additionalInfo}</p>
             </section>
           ) : null}
-        </aside>
+        </div>
 
-        <main className="space-y-8">
+        <div className="space-y-8">
           <section>
             <SectionHeading theme={theme}>Experiencia profissional</SectionHeading>
             <div className="mt-6 space-y-6">
@@ -178,7 +178,7 @@ export default function TimelineTemplate({ resume, theme = buildThemeTokens(resu
               </div>
             </section>
           </div>
-        </main>
+        </div>
       </div>
     </article>
   );

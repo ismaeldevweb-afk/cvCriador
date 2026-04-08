@@ -25,10 +25,10 @@ export default function MinimalTemplate({ resume, theme = buildThemeTokens(resum
         <div className="h-1.5 w-24 rounded-full" style={{ backgroundColor: theme.primaryColor }} />
         <div className="mt-6 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-sm uppercase tracking-[0.34em] text-slate-400">{snapshot.title || "Curriculo online"}</p>
-            <h1 className="mt-3 font-semibold tracking-tight" style={{ fontSize: theme.titleSize }}>
+            <p className="text-sm uppercase tracking-[0.34em] text-slate-600">{snapshot.title || "Curriculo online"}</p>
+            <p className="mt-3 font-semibold tracking-tight" style={{ fontSize: theme.titleSize }}>
               {snapshot.personal.fullName || "Seu nome"}
-            </h1>
+            </p>
             <p className="mt-4 max-w-xl text-lg leading-8 text-slate-600">{snapshot.personal.role || "Seu cargo principal"}</p>
           </div>
           <div className="space-y-4">

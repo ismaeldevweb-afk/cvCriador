@@ -22,9 +22,9 @@ export default function CompactTemplate({ resume, theme = buildThemeTokens(resum
               <p className="text-xs font-semibold uppercase tracking-[0.3em]" style={{ color: theme.primaryColor }}>
                 {snapshot.title || "Compacto premium"}
               </p>
-              <h1 className="mt-4 font-semibold tracking-tight text-slate-950" style={{ fontSize: theme.titleSize }}>
+              <p className="mt-4 font-semibold tracking-tight text-slate-950" style={{ fontSize: theme.titleSize }}>
                 {snapshot.personal.fullName || "Seu nome"}
-              </h1>
+              </p>
               <p className="mt-3 text-base leading-7 text-slate-600">
                 {snapshot.personal.role || "Curriculo objetivo, denso e eficiente para triagem rapida."}
               </p>

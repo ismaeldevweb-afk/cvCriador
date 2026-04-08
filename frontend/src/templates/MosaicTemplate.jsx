@@ -45,9 +45,9 @@ export default function MosaicTemplate({ resume, theme = buildThemeTokens(resume
               <p className="text-xs font-semibold uppercase tracking-[0.34em]" style={{ color: theme.primaryColor }}>
                 {snapshot.title || "Mosaico profissional"}
               </p>
-              <h1 className="mt-5 font-semibold tracking-tight text-slate-950" style={{ fontSize: theme.titleSize }}>
+              <p className="mt-5 font-semibold tracking-tight text-slate-950" style={{ fontSize: theme.titleSize }}>
                 {snapshot.personal.fullName || "Seu nome"}
-              </h1>
+              </p>
               <p className="mt-3 max-w-2xl text-lg leading-8 text-slate-600">
                 {snapshot.personal.role || "Grade modular para perfis com repertorio variado, projetos fortes e apresentacao visual dinamica."}
               </p>

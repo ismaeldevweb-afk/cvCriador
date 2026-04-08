@@ -47,13 +47,13 @@ export default function SpotlightTemplate({ resume, theme = buildThemeTokens(res
             <p className="text-xs font-semibold uppercase tracking-[0.34em]" style={{ color: `${theme.primaryColor}` }}>
               {snapshot.title || "Template destaque"}
             </p>
-            <h1 className="mt-5 max-w-4xl font-semibold tracking-tight" style={{ fontSize: theme.titleSize }}>
+            <p className="mt-5 max-w-4xl font-semibold tracking-tight" style={{ fontSize: theme.titleSize }}>
               {snapshot.personal.fullName || "Seu nome"}
-            </h1>
-            <p className="mt-4 max-w-3xl text-lg leading-8 text-white/78">
+            </p>
+            <p className="mt-4 max-w-3xl text-lg leading-8 text-white/90">
               {snapshot.personal.role || "Posicionamento visual forte, resumo objetivo e leitura premium para perfis estrategicos."}
             </p>
-            <div className="mt-6 rounded-[28px] border border-white/10 bg-white/6 p-5 text-[15px] leading-8 text-white/76">
+            <div className="mt-6 rounded-[28px] border border-white/10 bg-white/6 p-5 text-[15px] leading-8 text-white/90">
               {snapshot.summary || "Use o hero para comunicar rapidamente senioridade, repertorio e diferencial competitivo."}
             </div>
           </div>
@@ -63,7 +63,7 @@ export default function SpotlightTemplate({ resume, theme = buildThemeTokens(res
           {contactLines.slice(0, 6).map((line) => (
             <span
               key={line}
-              className="rounded-full border border-white/12 bg-white/8 px-3 py-2 text-xs font-semibold text-white/78"
+              className="rounded-full border border-white/12 bg-white/8 px-3 py-2 text-xs font-semibold text-white/90"
             >
               {line}
             </span>
@@ -72,7 +72,7 @@ export default function SpotlightTemplate({ resume, theme = buildThemeTokens(res
       </header>
 
       <div className="grid gap-6 bg-white p-8 lg:grid-cols-[1.18fr_0.82fr] lg:p-10">
-        <main className="space-y-6">
+        <div className="space-y-6">
           <Card theme={theme} title="Experiencia profissional">
             <div className="space-y-5">
               {snapshot.experience.map((item) => (
@@ -113,9 +113,9 @@ export default function SpotlightTemplate({ resume, theme = buildThemeTokens(res
               ))}
             </div>
           </Card>
-        </main>
+        </div>
 
-        <aside className="space-y-6">
+        <div className="space-y-6">
           <Card theme={theme} title="Objetivo">
             <p className="text-[15px] leading-7 text-slate-700">
               {snapshot.objective || "Apresente o tipo de desafio que voce busca e o contexto em que entrega seu melhor trabalho."}
@@ -172,7 +172,7 @@ export default function SpotlightTemplate({ resume, theme = buildThemeTokens(res
               <p className="text-[15px] leading-7 text-slate-700">{snapshot.additionalInfo}</p>
             </Card>
           ) : null}
-        </aside>
+        </div>
       </div>
     </article>
   );

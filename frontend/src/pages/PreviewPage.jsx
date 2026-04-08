@@ -1,9 +1,9 @@
-import { Suspense, lazy, useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Suspense, lazy, useEffect, useMemo, useState } from "react";
+import { Link, useLocation, useParams } from "react-router-dom";
 import Button from "../components/Button";
 import Panel from "../components/Panel";
 import AppLayout from "../layouts/AppLayout";
-import { resumeApi } from "../services/resumeApi";
+import { resumeApi, resumeDraftApi } from "../services/resumeApi";
 import { appRoutes, getEditorRoute } from "../utils/routes";
 
 const ResumePreview = lazy(() => import("../components/ResumePreview"));
@@ -19,6 +19,7 @@ function PreviewFallbackCard() {
 
 export default function PreviewPage() {
   const { id } = useParams();
+  const location = useLocation();
   const [resumeRecord, setResumeRecord] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
@@ -28,20 +29,77 @@ export default function PreviewPage() {
     pageCount: 1,
     pageStarts: [0],
   });
+  const previewState = location.state?.resumeRecord ?? null;
+  const editorPath = useMemo(() => {
+    if (location.state?.editorPath) {
+      return location.state.editorPath;
+    }
+
+    return id ? getEditorRoute(id) : appRoutes.editorNew;
+  }, [id, location.state]);
 
   useEffect(() => {
-    resumeApi
-      .getById(id)
-      .then((response) => {
-        setResumeRecord(response.resume);
-      })
-      .catch((error) => {
-        setFeedback(error.message);
-      })
-      .finally(() => {
+    let cancelled = false;
+
+    async function loadPreview() {
+      setIsLoading(true);
+      setFeedback("");
+
+      if (previewState?.data) {
+        setResumeRecord(previewState);
         setIsLoading(false);
-      });
-  }, [id]);
+        return;
+      }
+
+      if (!id) {
+        const draft = resumeDraftApi.get();
+
+        if (!draft?.data) {
+          setResumeRecord(null);
+          setFeedback("Nenhum rascunho disponivel para visualizacao.");
+          setIsLoading(false);
+          return;
+        }
+
+        setResumeRecord({
+          id: "draft",
+          title: draft.data.title || "Meu curriculo",
+          template: draft.data.template,
+          data: draft.data,
+          updatedAt: draft.updatedAt,
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const response = await resumeApi.getById(id);
+
+        if (cancelled) {
+          return;
+        }
+
+        setResumeRecord(response.resume);
+      } catch (error) {
+        if (cancelled) {
+          return;
+        }
+
+        setResumeRecord(null);
+        setFeedback(error.message);
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    loadPreview();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [id, previewState]);
 
   async function handleExport() {
     if (!resumeRecord) {
@@ -70,10 +128,7 @@ export default function PreviewPage() {
     <AppLayout
       actions={
         <>
-          <Button as={Link} to={appRoutes.dashboard} variant="ghost">
-            Painel
-          </Button>
-          <Button as={Link} to={getEditorRoute(id)} variant="secondary">
+          <Button as={Link} to={editorPath} variant="secondary">
             Voltar para o editor
           </Button>
           <Button disabled={isExporting || !paginationInfo.isReady} onClick={handleExport} variant="primary">
@@ -98,7 +153,7 @@ export default function PreviewPage() {
         <div className="space-y-6">
           <Panel
             action={
-              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
+              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-slate-700">
                 {resumeRecord.template}
               </span>
             }

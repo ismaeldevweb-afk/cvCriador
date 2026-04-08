@@ -1,18 +1,55 @@
 import { buildThemeTokens, escapeHtml, getResumeSnapshot, withLineBreaks, wrapDocument } from "./templateUtils";
 import { ProfilePhoto, renderProfilePhotoMarkup } from "./templatePhoto";
 
-function SectionTitle({ theme, children }) {
+function normalizeHexColor(value, fallback = "#0f766e") {
+  if (typeof value !== "string") {
+    return fallback;
+  }
+
+  const trimmed = value.trim();
+
+  if (/^#[\da-f]{3}$/i.test(trimmed)) {
+    return `#${trimmed
+      .slice(1)
+      .split("")
+      .map((char) => `${char}${char}`)
+      .join("")}`;
+  }
+
+  if (/^#[\da-f]{6}$/i.test(trimmed)) {
+    return trimmed;
+  }
+
+  return fallback;
+}
+
+function mixHexColors(left, right, ratio = 0.5) {
+  const start = normalizeHexColor(left).slice(1);
+  const end = normalizeHexColor(right, "#ffffff").slice(1);
+  const weight = Math.min(Math.max(ratio, 0), 1);
+  const channels = [0, 2, 4].map((offset) => {
+    const from = Number.parseInt(start.slice(offset, offset + 2), 16);
+    const to = Number.parseInt(end.slice(offset, offset + 2), 16);
+    const value = Math.round(from + (to - from) * weight);
+
+    return value.toString(16).padStart(2, "0");
+  });
+
+  return `#${channels.join("")}`;
+}
+
+function SectionTitle({ color, children }) {
   return (
-    <p className="text-[11px] font-bold uppercase tracking-[0.34em]" style={{ color: theme.primaryColor }}>
+    <p className="text-[11px] font-bold uppercase tracking-[0.34em]" style={{ color }}>
       {children}
     </p>
   );
 }
 
-function GlassCard({ theme, title, children }) {
+function GlassCard({ accentColor, title, children }) {
   return (
     <section className="rounded-[24px] border bg-white/5 p-5 backdrop-blur" style={{ borderColor: "rgba(255,255,255,0.12)" }}>
-      <SectionTitle theme={theme}>{title}</SectionTitle>
+      <SectionTitle color={accentColor}>{title}</SectionTitle>
       <div className="mt-4">{children}</div>
     </section>
   );
@@ -22,22 +59,23 @@ export default function NoirTemplate({ resume, theme = buildThemeTokens(resume.c
   const snapshot = getResumeSnapshot(resume);
   const hasPhoto = Boolean(snapshot.personal.photo);
   const contactLines = snapshot.contactLines.length > 0 ? snapshot.contactLines : ["Dados de contato e links profissionais"];
+  const accentColor = mixHexColors(theme.primaryColor, "#ffffff", 0.5);
 
   return (
     <article className="overflow-hidden rounded-[32px] bg-[#0b1220] text-white shadow-[0_26px_80px_rgba(2,6,23,0.42)]" style={{ fontFamily: theme.fontFamily }}>
       <header className="border-b border-white/10 px-8 pb-8 pt-10 lg:px-10">
         <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.34em]" style={{ color: theme.primaryColor }}>
+            <p className="text-xs font-semibold uppercase tracking-[0.34em]" style={{ color: accentColor }}>
               {snapshot.title || "Noir signature"}
             </p>
-            <h1 className="mt-6 max-w-4xl font-semibold tracking-tight text-white" style={{ fontSize: theme.titleSize }}>
+            <p className="mt-6 max-w-4xl font-semibold tracking-tight text-white" style={{ fontSize: theme.titleSize }}>
               {snapshot.personal.fullName || "Seu nome"}
-            </h1>
-            <p className="mt-4 max-w-3xl text-lg leading-8 text-white/70">
+            </p>
+            <p className="mt-4 max-w-3xl text-lg leading-8 text-white/88">
               {snapshot.personal.role || "Template escuro com contraste elegante para posicionamento premium, impacto visual e leitura confiante."}
             </p>
-            <div className="mt-6 rounded-[28px] border border-white/10 bg-white/5 px-6 py-5 text-[16px] leading-8 text-white/72">
+            <div className="mt-6 rounded-[28px] border border-white/10 bg-white/5 px-6 py-5 text-[16px] leading-8 text-white/88">
               {snapshot.summary || "Use o resumo como manifesto curto: resultados, repertorio e maturidade profissional em tom direto e sofisticado."}
             </div>
           </div>
@@ -57,7 +95,7 @@ export default function NoirTemplate({ resume, theme = buildThemeTokens(resume.c
             ) : null}
             <div className="grid gap-3 sm:grid-cols-2">
               {contactLines.slice(0, 6).map((line) => (
-                <div key={line} className="rounded-[22px] border border-white/10 bg-white/5 px-4 py-4 text-sm leading-6 text-white/70">
+                <div key={line} className="rounded-[22px] border border-white/10 bg-white/5 px-4 py-4 text-sm leading-6 text-white/88">
                   {line}
                 </div>
               ))}
@@ -67,20 +105,20 @@ export default function NoirTemplate({ resume, theme = buildThemeTokens(resume.c
       </header>
 
       <div className="grid gap-6 px-8 py-8 lg:grid-cols-[300px_minmax(0,1fr)] lg:px-10">
-        <aside className="space-y-6">
-          <GlassCard theme={theme} title="Objetivo">
-            <p className="text-[15px] leading-7 text-white/74">
+        <div className="space-y-6">
+          <GlassCard accentColor={accentColor} title="Objetivo">
+            <p className="text-[15px] leading-7 text-white/88">
               {snapshot.objective || "Defina o proximo movimento da carreira, o ambiente buscado e a natureza do impacto que voce quer liderar."}
             </p>
           </GlassCard>
 
-          <GlassCard theme={theme} title="Competencias">
+          <GlassCard accentColor={accentColor} title="Competencias">
             <div className="flex flex-wrap gap-2">
               {snapshot.skills.map((skill) => (
                 <span
                   key={skill}
-                  className="rounded-full border border-white/10 px-3 py-2 text-xs font-semibold"
-                  style={{ backgroundColor: `${theme.primaryColor}18`, color: theme.primaryColor }}
+                  className="rounded-full border px-3 py-2 text-xs font-semibold text-white"
+                  style={{ borderColor: accentColor, backgroundColor: "rgba(255,255,255,0.04)" }}
                 >
                   {skill}
                 </span>
@@ -88,46 +126,49 @@ export default function NoirTemplate({ resume, theme = buildThemeTokens(resume.c
             </div>
           </GlassCard>
 
-          <GlassCard theme={theme} title="Idiomas e certificacoes">
+          <GlassCard accentColor={accentColor} title="Idiomas e certificacoes">
             <div className="space-y-4">
               {snapshot.languages.map((item) => (
                 <div key={item.id}>
                   <p className="font-semibold text-white">{item.name}</p>
-                  <p className="text-sm text-white/58">{item.level}</p>
+                  <p className="text-sm text-white/82">{item.level}</p>
                 </div>
               ))}
               {snapshot.certifications.map((item) => (
                 <div key={item.id}>
                   <p className="font-semibold text-white">{item.name}</p>
-                  <p className="text-sm text-white/58">{[item.issuer, item.year].filter(Boolean).join(" • ")}</p>
+                  <p className="text-sm text-white/82">{[item.issuer, item.year].filter(Boolean).join(" • ")}</p>
                 </div>
               ))}
             </div>
           </GlassCard>
 
           {snapshot.additionalInfo ? (
-            <GlassCard theme={theme} title="Informacoes adicionais">
-              <p className="text-[15px] leading-7 text-white/72">{snapshot.additionalInfo}</p>
+            <GlassCard accentColor={accentColor} title="Informacoes adicionais">
+              <p className="text-[15px] leading-7 text-white/88">{snapshot.additionalInfo}</p>
             </GlassCard>
           ) : null}
-        </aside>
+        </div>
 
-        <main className="space-y-6">
+        <div className="space-y-6">
           <section className="rounded-[28px] border border-white/10 bg-white/4 p-6">
-            <SectionTitle theme={theme}>Experiencia profissional</SectionTitle>
+            <SectionTitle color={accentColor}>Experiencia profissional</SectionTitle>
             <div className="mt-5 space-y-5">
               {snapshot.experience.map((item) => (
                 <div key={item.id} className="rounded-[24px] border border-white/10 bg-[#101a2d] p-5">
                   <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                     <div>
                       <p className="text-lg font-semibold text-white">{item.role}</p>
-                      <p className="text-sm text-white/58">{item.company}</p>
+                      <p className="text-sm text-white/82">{item.company}</p>
                     </div>
-                    <span className="inline-flex rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em]" style={{ backgroundColor: `${theme.primaryColor}18`, color: theme.primaryColor }}>
+                    <span
+                      className="inline-flex rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em]"
+                      style={{ backgroundColor: accentColor, color: "#062b29" }}
+                    >
                       {item.period}
                     </span>
                   </div>
-                  <p className="mt-4 text-[15px] leading-7 text-white/70">{item.description}</p>
+                  <p className="mt-4 text-[15px] leading-7 text-white/88">{item.description}</p>
                 </div>
               ))}
             </div>
@@ -135,33 +176,33 @@ export default function NoirTemplate({ resume, theme = buildThemeTokens(resume.c
 
           <div className="grid gap-6 xl:grid-cols-[1.02fr_0.98fr]">
             <section className="rounded-[28px] border border-white/10 bg-white/4 p-6">
-              <SectionTitle theme={theme}>Projetos</SectionTitle>
+              <SectionTitle color={accentColor}>Projetos</SectionTitle>
               <div className="mt-5 space-y-4">
                 {snapshot.projects.map((item) => (
                   <div key={item.id} className="rounded-[22px] border border-white/10 bg-[#101a2d] p-5">
                     <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
                       <div>
                         <p className="font-semibold text-white">{item.name}</p>
-                        <p className="text-sm text-white/58">{item.technologies}</p>
+                        <p className="text-sm text-white/82">{item.technologies}</p>
                       </div>
-                      <span className="text-sm font-semibold" style={{ color: theme.primaryColor }}>
+                      <span className="text-sm font-semibold" style={{ color: accentColor }}>
                         {item.link}
                       </span>
                     </div>
-                    <p className="mt-3 text-[15px] leading-7 text-white/70">{item.description}</p>
+                    <p className="mt-3 text-[15px] leading-7 text-white/88">{item.description}</p>
                   </div>
                 ))}
               </div>
             </section>
 
             <section className="rounded-[28px] border border-white/10 bg-white/4 p-6">
-              <SectionTitle theme={theme}>Formacao</SectionTitle>
+              <SectionTitle color={accentColor}>Formacao</SectionTitle>
               <div className="mt-5 space-y-4">
                 {snapshot.education.map((item) => (
                   <div key={item.id}>
                     <p className="font-semibold text-white">{item.course}</p>
-                    <p className="text-sm text-white/58">{item.institution}</p>
-                    <p className="mt-2 text-sm font-semibold" style={{ color: theme.primaryColor }}>
+                    <p className="text-sm text-white/82">{item.institution}</p>
+                    <p className="mt-2 text-sm font-semibold" style={{ color: accentColor }}>
                       {item.period}
                     </p>
                   </div>
@@ -169,7 +210,7 @@ export default function NoirTemplate({ resume, theme = buildThemeTokens(resume.c
               </div>
             </section>
           </div>
-        </main>
+        </div>
       </div>
     </article>
   );

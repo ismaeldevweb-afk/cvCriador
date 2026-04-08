@@ -3,6 +3,7 @@ export const appRoutes = {
   dashboard: "/dashboard",
   templates: "/templates#template-selector",
   editorNew: "/editor/new",
+  previewDraft: "/preview/draft",
 };
 
 export function getEditorRoute(id) {

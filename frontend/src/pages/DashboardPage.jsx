@@ -6,6 +6,7 @@ import ResumeCard from "../components/ResumeCard";
 import AppLayout from "../layouts/AppLayout";
 import { activityInsights } from "../services/activityInsights";
 import { buildResumeStorageMeta, resumeApi, resumeDraftApi } from "../services/resumeApi";
+import { buildResumeInsight } from "../utils/resumeInsights";
 import { appRoutes, getEditorRoute, getPreviewRoute } from "../utils/routes";
 import { templateOptions } from "../utils/resumeDefaults";
 
@@ -16,6 +17,15 @@ const badgeTones = {
   teal: "bg-brand-50 text-brand-700",
   amber: "bg-amber-50 text-amber-700",
   rose: "bg-rose-50 text-rose-700",
+  emerald: "bg-emerald-50 text-emerald-700",
+};
+
+const stageToneClassNames = {
+  slate: "border-slate-200 bg-slate-100 text-slate-700",
+  teal: "border-brand-200 bg-brand-50 text-brand-700",
+  amber: "border-amber-200 bg-amber-50 text-amber-800",
+  rose: "border-rose-200 bg-rose-50 text-rose-700",
+  emerald: "border-emerald-200 bg-emerald-50 text-emerald-700",
 };
 
 function formatDashboardMoment(value) {
@@ -53,6 +63,137 @@ function getMostUsedTemplate(resumes) {
     name: templateNameMap[templateId] ?? templateId,
     count,
   };
+}
+
+function buildWorkspaceTimeline({ resumes, draftInfo, exportSummary }) {
+  const items = [];
+
+  resumes.slice(0, 4).forEach((resume) => {
+    const insight = buildResumeInsight(resume);
+
+    items.push({
+      id: `resume-${resume.id}`,
+      icon: "document",
+      tone: insight.stageTone,
+      title: resume.title,
+      subtitle: `${insight.stage} • ${resume.data.personal?.role || "Sem cargo definido"}`,
+      time: resume.updatedAt,
+      to: getEditorRoute(resume.id),
+    });
+  });
+
+  exportSummary.recentExports.forEach((item) => {
+    items.push({
+      id: `export-${item.id}`,
+      icon: "download",
+      tone: "teal",
+      title: item.fileName,
+      subtitle: "PDF exportado no workspace local",
+      time: item.exportedAt,
+      to: null,
+    });
+  });
+
+  if (draftInfo?.updatedAt) {
+    items.push({
+      id: "draft",
+      icon: "draft",
+      tone: "slate",
+      title: "Rascunho local pronto para retomar",
+      subtitle: "O editor recupera automaticamente a estrutura atual",
+      time: draftInfo.updatedAt,
+      to: appRoutes.editorNew,
+    });
+  }
+
+  return items
+    .sort((left, right) => Date.parse(right.time ?? 0) - Date.parse(left.time ?? 0))
+    .slice(0, 5);
+}
+
+function buildWorkspaceTasks({
+  resumes,
+  draftInfo,
+  exportSummary,
+  focusEntry,
+  templateUsageCount,
+  storageMeta,
+}) {
+  const items = [];
+
+  if (resumes.length === 0) {
+    items.push({
+      id: "create-first",
+      icon: "spark",
+      tone: "teal",
+      title: "Criar a primeira versao base",
+      description: "Escolha um template e monte a estrutura principal do curriculo.",
+      to: appRoutes.templates,
+      cta: "Comecar",
+    });
+  }
+
+  if (draftInfo?.updatedAt && (!focusEntry || focusEntry.kind !== "draft")) {
+    items.push({
+      id: "draft",
+      icon: "draft",
+      tone: "slate",
+      title: "Retomar rascunho local",
+      description: `Edicao salva em ${formatDashboardMoment(draftInfo.updatedAt)}.`,
+      to: appRoutes.editorNew,
+      cta: "Retomar",
+    });
+  }
+
+  if (focusEntry?.insight && focusEntry.insight.completionScore < 85) {
+    items.push({
+      id: "focus-upgrade",
+      icon: "target",
+      tone: focusEntry.insight.stageTone,
+      title: `Elevar ${focusEntry.title}`,
+      description: focusEntry.insight.suggestion,
+      to: focusEntry.to,
+      cta: focusEntry.kind === "draft" ? "Editar" : "Abrir",
+    });
+  }
+
+  if (focusEntry?.kind === "resume" && exportSummary.totalExports === 0) {
+    items.push({
+      id: "first-export",
+      icon: "download",
+      tone: "teal",
+      title: "Gerar o primeiro PDF",
+      description: "Use o preview final para validar a versao principal antes de compartilhar.",
+      to: focusEntry.previewTo,
+      cta: "Preview",
+    });
+  }
+
+  if (resumes.length > 0 && templateUsageCount < 2 && !storageMeta.limitReached) {
+    items.push({
+      id: "new-template",
+      icon: "layers",
+      tone: "amber",
+      title: "Testar um segundo template",
+      description: "Crie uma variacao visual para comparar leitura e posicionamento.",
+      to: appRoutes.templates,
+      cta: "Explorar",
+    });
+  }
+
+  if (storageMeta.limitReached) {
+    items.push({
+      id: "storage-limit",
+      icon: "duplicate",
+      tone: "rose",
+      title: "Liberar espaco no modo local",
+      description: `Voce esta usando ${storageMeta.total}/${storageMeta.limit} slots de curriculo.`,
+      to: null,
+      cta: null,
+    });
+  }
+
+  return items.slice(0, 4);
 }
 
 function Icon({ name, className = "h-5 w-5" }) {
@@ -143,6 +284,37 @@ function Icon({ name, className = "h-5 w-5" }) {
     );
   }
 
+  if (name === "target") {
+    return (
+      <svg {...sharedProps}>
+        <circle cx="12" cy="12" r="7.25" />
+        <circle cx="12" cy="12" r="3.25" />
+        <path d="M12 2.75v2.5" />
+        <path d="M21.25 12h-2.5" />
+        <path d="M12 18.75v2.5" />
+        <path d="M5.25 12h-2.5" />
+      </svg>
+    );
+  }
+
+  if (name === "check-circle") {
+    return (
+      <svg {...sharedProps}>
+        <circle cx="12" cy="12" r="8" />
+        <path d="m8.75 12.25 2.1 2.1 4.4-4.6" />
+      </svg>
+    );
+  }
+
+  if (name === "arrow-up-right") {
+    return (
+      <svg {...sharedProps}>
+        <path d="M8 16 16 8" />
+        <path d="M9 8h7v7" />
+      </svg>
+    );
+  }
+
   return (
     <svg {...sharedProps}>
       <path d="M6 12h12" />
@@ -159,7 +331,7 @@ function IconBadge({ name, tone = "slate" }) {
   );
 }
 
-function ActionCard({ as: Component = Link, icon, subtitle, title, tone = "secondary", ...props }) {
+function ActionCard({ as: Component = Link, icon, subtitle, title, tone = "secondary", className = "", ...props }) {
   const toneClassName =
     tone === "accent"
       ? "border border-brand-200 bg-[linear-gradient(135deg,rgba(15,118,110,0.10),rgba(20,184,166,0.14))] text-ink hover:border-brand-400 hover:shadow-[0_20px_40px_rgba(15,118,110,0.12)]"
@@ -167,7 +339,7 @@ function ActionCard({ as: Component = Link, icon, subtitle, title, tone = "secon
 
   return (
     <Component
-      className={`flex items-center justify-between gap-4 rounded-[24px] px-4 py-4 transition duration-200 hover:-translate-y-0.5 ${toneClassName}`}
+      className={`flex items-center justify-between gap-4 rounded-[24px] px-4 py-4 transition duration-200 hover:-translate-y-0.5 ${toneClassName} ${className}`}
       {...props}
     >
       <div className="flex items-center gap-3">
@@ -182,10 +354,63 @@ function ActionCard({ as: Component = Link, icon, subtitle, title, tone = "secon
   );
 }
 
+function TaskCard({ item }) {
+  const Component = item.to ? Link : "div";
+  const componentProps = item.to ? { to: item.to } : {};
+
+  return (
+    <Component
+      className={`flex items-start justify-between gap-4 rounded-[24px] border p-4 transition duration-200 ${
+        item.to ? "hover:-translate-y-0.5 hover:shadow-[0_16px_30px_rgba(15,23,42,0.06)]" : ""
+      } ${stageToneClassNames[item.tone] ?? stageToneClassNames.slate}`}
+      {...componentProps}
+    >
+      <div className="flex items-start gap-3">
+        <IconBadge name={item.icon} tone={item.tone} />
+        <div>
+          <p className="text-sm font-semibold text-ink">{item.title}</p>
+          <p className="mt-1 text-sm leading-6 text-slate-600">{item.description}</p>
+          {item.cta ? (
+            <span className="mt-3 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-700">
+              {item.cta}
+              <Icon className="h-3.5 w-3.5" name="arrow-up-right" />
+            </span>
+          ) : null}
+        </div>
+      </div>
+      {item.to ? <Icon className="mt-1 h-4 w-4 shrink-0 text-slate-500" name="arrow-up-right" /> : null}
+    </Component>
+  );
+}
+
+function TimelineItem({ item }) {
+  const Component = item.to ? Link : "div";
+  const componentProps = item.to ? { to: item.to } : {};
+
+  return (
+    <Component
+      className={`flex items-start justify-between gap-4 rounded-[22px] border border-white/90 bg-white/90 px-4 py-4 shadow-[0_12px_24px_rgba(15,23,42,0.04)] ${
+        item.to ? "transition duration-200 hover:-translate-y-0.5 hover:border-slate-300" : ""
+      }`}
+      {...componentProps}
+    >
+      <div className="flex items-start gap-3">
+        <IconBadge name={item.icon} tone={item.tone} />
+        <div>
+          <p className="text-sm font-semibold text-ink">{item.title}</p>
+          <p className="mt-1 text-sm leading-6 text-slate-600">{item.subtitle}</p>
+          <p className="mt-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">{formatDashboardMoment(item.time)}</p>
+        </div>
+      </div>
+      {item.to ? <Icon className="mt-1 h-4 w-4 shrink-0 text-slate-400" name="arrow-up-right" /> : null}
+    </Component>
+  );
+}
+
 export default function DashboardPage() {
   const [resumes, setResumes] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [feedback, setFeedback] = useState("");
+  const [feedback, setFeedback] = useState(null);
   const [draftInfo, setDraftInfo] = useState(() => resumeDraftApi.get());
   const [exportSummary, setExportSummary] = useState(() => activityInsights.getPdfExportSummary());
 
@@ -206,7 +431,10 @@ export default function DashboardPage() {
       })
       .catch((error) => {
         if (active) {
-          setFeedback(error.message);
+          setFeedback({
+            tone: "error",
+            message: error.message,
+          });
         }
       })
       .finally(() => {
@@ -220,29 +448,102 @@ export default function DashboardPage() {
     };
   }, []);
 
-  const latestResume = resumes[0];
-  const templateUsageCount = new Set(resumes.map((item) => item.template)).size;
+  const resumeSnapshots = useMemo(
+    () => resumes.map((resume) => ({ resume, insight: buildResumeInsight(resume) })),
+    [resumes],
+  );
+  const latestResumeSnapshot = resumeSnapshots[0] ?? null;
+  const latestResume = latestResumeSnapshot?.resume ?? null;
+  const latestResumeInsight = latestResumeSnapshot?.insight ?? null;
+  const templateUsageCount = new Set(resumes.map((item) => item.template ?? item.data?.template)).size;
   const mostUsedTemplate = useMemo(() => getMostUsedTemplate(resumes), [resumes]);
   const updatedTodayCount = useMemo(
     () => resumes.filter((item) => new Date(item.updatedAt).toDateString() === new Date().toDateString()).length,
     [resumes],
   );
+  const averageCompletion = useMemo(() => {
+    if (resumeSnapshots.length === 0) {
+      return 0;
+    }
+
+    return Math.round(
+      resumeSnapshots.reduce((sum, item) => sum + item.insight.completionScore, 0) / resumeSnapshots.length,
+    );
+  }, [resumeSnapshots]);
+  const readyResumeCount = useMemo(
+    () => resumeSnapshots.filter((item) => item.insight.completionScore >= 85).length,
+    [resumeSnapshots],
+  );
+  const storageMeta = useMemo(() => buildResumeStorageMeta(resumes), [resumes]);
+  const draftInsight = useMemo(() => (draftInfo?.data ? buildResumeInsight(draftInfo.data) : null), [draftInfo]);
+  const shouldPrioritizeDraft = useMemo(() => {
+    if (!draftInfo?.data) {
+      return false;
+    }
+
+    const draftTime = Date.parse(draftInfo.updatedAt ?? 0);
+    const latestResumeTime = Date.parse(latestResume?.updatedAt ?? 0);
+    return !latestResume || draftTime >= latestResumeTime;
+  }, [draftInfo, latestResume]);
+
+  const focusEntry = useMemo(() => {
+    if (shouldPrioritizeDraft && draftInfo?.data && draftInsight) {
+      return {
+        kind: "draft",
+        title: draftInfo.data.title || "Rascunho local",
+        role: draftInfo.data.personal?.role || "Defina um cargo para dar mais contexto visual",
+        templateName: templateNameMap[draftInfo.data.template] ?? draftInfo.data.template ?? "Template nao definido",
+        updatedAt: draftInfo.updatedAt,
+        to: appRoutes.editorNew,
+        previewTo: null,
+        actionLabel: "Retomar rascunho",
+        insight: draftInsight,
+      };
+    }
+
+    if (latestResume && latestResumeInsight) {
+      return {
+        kind: "resume",
+        title: latestResume.title,
+        role: latestResume.data.personal?.role || "Defina um cargo para dar mais contexto visual",
+        templateName: templateNameMap[latestResume.template] ?? latestResume.template,
+        updatedAt: latestResume.updatedAt,
+        to: getEditorRoute(latestResume.id),
+        previewTo: getPreviewRoute(latestResume.id),
+        actionLabel: "Continuar edicao",
+        insight: latestResumeInsight,
+      };
+    }
+
+    return null;
+  }, [draftInfo, draftInsight, latestResume, latestResumeInsight, shouldPrioritizeDraft]);
+
+  const continueTarget = focusEntry ? focusEntry.to : appRoutes.templates;
+  const continueLabel = focusEntry ? focusEntry.actionLabel : "Abrir editor";
+  const hasDistinctContinueAction = continueTarget !== appRoutes.templates;
   const heroTitle =
     resumes.length === 0
-      ? "Comece seu primeiro curriculo agora."
-      : resumes.length === 1
-        ? "Sua base principal ja esta pronta."
-        : "Seu painel esta vivo e pronto para novas versoes.";
+      ? "Monte o primeiro curriculo e ative seu workspace."
+      : focusEntry?.kind === "draft"
+        ? "Seu rascunho local esta mais vivo do que as versoes salvas."
+        : resumes.length === 1
+          ? "Sua versao principal pode virar varias adaptacoes."
+          : "Seu workspace esta pronto para adaptar curriculos com velocidade.";
   const heroCopy =
     resumes.length === 0
-      ? "Crie a primeira versao, escolha um template e gere seu primeiro PDF sem sair do navegador."
-      : "Gerencie versoes, adapte por vaga e exporte em PDF com rapidez.";
-  const continueTarget = latestResume ? getEditorRoute(latestResume.id) : draftInfo ? appRoutes.editorNew : appRoutes.templates;
-  const continueLabel = latestResume ? "Continuar ultima edicao" : draftInfo ? "Retomar rascunho local" : "Abrir editor";
-  const hasDistinctContinueAction = continueTarget !== appRoutes.templates;
-  const focusTemplateName = latestResume ? templateNameMap[latestResume.template] ?? latestResume.template : "Moderno";
-  const latestRole = latestResume?.data.personal?.role || "Defina um cargo para dar mais contexto visual";
-  const storageMeta = useMemo(() => buildResumeStorageMeta(resumes), [resumes]);
+      ? "Escolha um template, preencha a base principal e acompanhe o progresso antes da primeira exportacao."
+      : focusEntry?.kind === "draft"
+        ? "Retome o rascunho mais recente, consolide a estrutura e salve quando a narrativa estiver redonda."
+        : focusEntry?.insight.completionScore >= 85
+          ? "Voce ja tem uma base forte. Use o painel para duplicar, personalizar por vaga e exportar com rapidez."
+          : "Gerencie versoes, acompanhe a prontidao e saiba qual o proximo ajuste antes de exportar.";
+  const storageProgress = storageMeta.limit > 0 ? Math.round((storageMeta.total / storageMeta.limit) * 100) : 0;
+  const storageCopy =
+    resumes.length === 0
+      ? "Nenhum slot ocupado ainda."
+      : storageMeta.limitReached
+        ? "Limite atingido. Exclua versoes antigas para continuar criando."
+        : `${storageMeta.remaining} ${storageMeta.remaining === 1 ? "espaco restante" : "espacos restantes"} para novas versoes.`;
 
   const metrics = useMemo(
     () => [
@@ -252,22 +553,21 @@ export default function DashboardPage() {
         detail:
           resumes.length === 0
             ? "Nenhuma versao criada ainda."
-            : resumes.length === 1
-              ? "1 versao base pronta para adaptar."
-              : `${resumes.length} versoes salvas neste navegador.`,
+            : `${updatedTodayCount} ${updatedTodayCount === 1 ? "versao atualizada hoje" : "versoes atualizadas hoje"}.`,
         icon: "document",
         kicker: "Base",
         tone: "slate",
       },
       {
-        label: "PDFs exportados",
-        value: exportSummary.totalExports,
-        detail: exportSummary.lastExportAt
-          ? `Ultimo download em ${formatDashboardMoment(exportSummary.lastExportAt)}.`
-          : "Seu historico de PDFs aparece aqui depois da primeira exportacao.",
-        icon: "download",
-        kicker: "Entrega",
-        tone: "teal",
+        label: "Prontidao media",
+        value: `${averageCompletion}%`,
+        detail:
+          resumes.length === 0
+            ? "A leitura de maturidade aparece aqui quando houver curriculos salvos."
+            : `${readyResumeCount} ${readyResumeCount === 1 ? "versao pronta para envio" : "versoes prontas para envio"}.`,
+        icon: readyResumeCount > 0 ? "check-circle" : "target",
+        kicker: "Qualidade",
+        tone: readyResumeCount > 0 ? "emerald" : "amber",
       },
       {
         label: "Templates usados",
@@ -280,17 +580,49 @@ export default function DashboardPage() {
         tone: "amber",
       },
       {
-        label: "Atualizados hoje",
-        value: updatedTodayCount,
-        detail: latestResume
-          ? `Ultima edicao em ${formatDashboardMoment(latestResume.updatedAt)}.`
-          : "Sem atividade recente registrada.",
-        icon: "clock",
-        kicker: "Ritmo",
-        tone: "rose",
+        label: "PDFs exportados",
+        value: exportSummary.totalExports,
+        detail: exportSummary.lastExportAt
+          ? `Ultimo download em ${formatDashboardMoment(exportSummary.lastExportAt)}.`
+          : "Seu historico de PDFs aparece aqui depois da primeira exportacao.",
+        icon: "download",
+        kicker: "Entrega",
+        tone: "teal",
       },
     ],
-    [exportSummary.lastExportAt, exportSummary.totalExports, latestResume, mostUsedTemplate, resumes.length, templateUsageCount, updatedTodayCount],
+    [
+      averageCompletion,
+      exportSummary.lastExportAt,
+      exportSummary.totalExports,
+      mostUsedTemplate,
+      readyResumeCount,
+      resumes.length,
+      templateUsageCount,
+      updatedTodayCount,
+    ],
+  );
+
+  const workspaceTasks = useMemo(
+    () =>
+      buildWorkspaceTasks({
+        resumes,
+        draftInfo,
+        exportSummary,
+        focusEntry,
+        templateUsageCount,
+        storageMeta,
+      }),
+    [draftInfo, exportSummary, focusEntry, resumes, storageMeta, templateUsageCount],
+  );
+
+  const workspaceTimeline = useMemo(
+    () =>
+      buildWorkspaceTimeline({
+        resumes,
+        draftInfo,
+        exportSummary,
+      }),
+    [draftInfo, exportSummary, resumes],
   );
 
   async function handleDelete(resumeId) {
@@ -301,9 +633,15 @@ export default function DashboardPage() {
     try {
       await resumeApi.remove(resumeId);
       setResumes((current) => current.filter((item) => item.id !== resumeId));
-      setFeedback("Curriculo excluido com sucesso.");
+      setFeedback({
+        tone: "success",
+        message: "Curriculo excluido com sucesso.",
+      });
     } catch (error) {
-      setFeedback(error.message);
+      setFeedback({
+        tone: "error",
+        message: error.message,
+      });
     }
   }
 
@@ -311,20 +649,30 @@ export default function DashboardPage() {
     try {
       const response = await resumeApi.duplicate(resumeId);
       setResumes((current) => [response.resume, ...current]);
-      setFeedback("Curriculo duplicado com sucesso.");
+      setFeedback({
+        tone: "success",
+        message: "Curriculo duplicado com sucesso.",
+      });
     } catch (error) {
-      setFeedback(error.message);
+      setFeedback({
+        tone: "error",
+        message: error.message,
+      });
     }
   }
 
   return (
-    <AppLayout footerProps={{ showNavigation: false }} subtitle="Gerencie versoes, adapte por vaga e exporte em PDF com rapidez." title="Dashboard">
-      <div className="mb-6 grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_300px] 2xl:grid-cols-[minmax(0,1.38fr)_340px]">
+    <AppLayout
+      footerProps={{ showNavigation: false }}
+      subtitle="Retome rascunhos, acompanhe prontidao e transforme versoes em entregas sem perder contexto."
+      title="Dashboard"
+    >
+      <div className="mb-6 grid gap-6 xl:grid-cols-[minmax(0,1.5fr)_340px] 2xl:grid-cols-[minmax(0,1.45fr)_380px]">
         <Panel className="overflow-hidden border-white/90 bg-[linear-gradient(145deg,rgba(255,255,255,0.99),rgba(248,250,252,0.92))] p-7 shadow-[0_24px_60px_rgba(15,23,42,0.08)] xl:p-8">
-          <div className="grid gap-8 2xl:grid-cols-[minmax(0,1.28fr)_280px]">
+          <div className="grid gap-8 2xl:grid-cols-[minmax(0,1.22fr)_310px]">
             <div>
               <p className="text-xs font-medium uppercase tracking-[0.24em] text-slate-600">Painel vivo</p>
-              <h2 className="mt-3 max-w-xl text-[2.45rem] font-medium leading-[1.08] tracking-[-0.03em] text-slate-900 md:text-[2.8rem]">
+              <h2 className="mt-3 max-w-3xl text-[2.45rem] font-medium leading-[1.05] tracking-[-0.03em] text-slate-900 md:text-[2.85rem]">
                 {heroTitle}
               </h2>
               <p className="mt-5 max-w-2xl text-sm leading-7 text-slate-600">{heroCopy}</p>
@@ -340,24 +688,30 @@ export default function DashboardPage() {
                 ) : null}
               </div>
 
-              {storageMeta.limitReached ? (
-                <div className="mt-7 rounded-[24px] border border-amber-200 bg-[linear-gradient(145deg,rgba(255,251,235,0.96),rgba(254,243,199,0.78))] p-4 shadow-[0_16px_35px_rgba(217,119,6,0.10)]">
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                    <div>
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-amber-700/75">Modo local cheio</p>
-                      <p className="mt-2 text-sm font-semibold text-amber-950">
-                        Voce atingiu o limite de curriculos salvos neste modo local.
-                      </p>
-                      <p className="mt-2 text-sm leading-6 text-amber-900/80">
-                        Exclua versoes antigas para abrir espaco para novas criacoes sem perder a leveza do MVP.
-                      </p>
-                    </div>
-                    <span className="rounded-full border border-amber-200 bg-white/80 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-800">
-                      {storageMeta.total}/{storageMeta.limit} versoes
-                    </span>
+              <div className="mt-7 rounded-[26px] border border-slate-200 bg-[linear-gradient(145deg,rgba(255,255,255,0.98),rgba(248,250,252,0.92))] p-5 shadow-[0_14px_32px_rgba(15,23,42,0.05)]">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-600">Capacidade local</p>
+                    <p className="mt-2 text-lg font-semibold tracking-tight text-ink">
+                      {storageMeta.total}/{storageMeta.limit} versoes utilizadas
+                    </p>
                   </div>
+                  <span className="rounded-full border border-slate-200 bg-white/90 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-700">
+                    {storageMeta.remaining} livres
+                  </span>
                 </div>
-              ) : null}
+                <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-200">
+                  <div
+                    className={`h-full rounded-full ${
+                      storageMeta.limitReached
+                        ? "bg-[linear-gradient(90deg,#e11d48_0%,#fb7185_100%)]"
+                        : "bg-[linear-gradient(90deg,#0f766e_0%,#14b8a6_100%)]"
+                    }`}
+                    style={{ width: `${storageProgress}%` }}
+                  />
+                </div>
+                <p className="mt-3 text-sm leading-6 text-slate-600">{storageCopy}</p>
+              </div>
 
               <div className="mt-9 grid gap-4 sm:grid-cols-2">
                 {metrics.map((item) => (
@@ -379,36 +733,90 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <div className="rounded-[30px] border border-slate-900/85 bg-[linear-gradient(160deg,#0f172a_0%,#1e293b_44%,#0f766e_100%)] p-6 text-white shadow-[0_28px_60px_rgba(15,23,42,0.24)] xl:p-7">
+            <div className="rounded-[30px] border border-slate-900/85 bg-[radial-gradient(circle_at_top,rgba(45,212,191,0.16),transparent_38%),linear-gradient(160deg,#0f172a_0%,#1e293b_44%,#0f766e_100%)] p-6 text-white shadow-[0_28px_60px_rgba(15,23,42,0.24)] xl:p-7">
               <div className="flex items-center justify-between gap-3">
-                <p className="text-xs font-medium uppercase tracking-[0.22em] text-white/78">Foco atual</p>
-                <span className="rounded-full border border-white/12 bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/88">
-                  {latestResume ? "Ativo" : "Vazio"}
+                <p className="text-xs font-medium uppercase tracking-[0.22em] text-white/78">Radar atual</p>
+                <span
+                  className={`rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] ${
+                    focusEntry ? stageToneClassNames[focusEntry.insight.stageTone] : "border-white/12 bg-white/10 text-white/80"
+                  }`}
+                >
+                  {focusEntry ? focusEntry.insight.stage : "Vazio"}
                 </span>
               </div>
 
               <h3 className="mt-4 text-2xl font-semibold tracking-tight">
-                {latestResume?.title || "Nenhum curriculo salvo ainda"}
+                {focusEntry?.title || "Nenhum curriculo salvo ainda"}
               </h3>
               <p className="mt-3 text-sm leading-7 text-white/72">
-                {latestResume
-                  ? "Continue refinando a versao principal, duplique para novas vagas e exporte quando estiver pronto."
-                  : "Crie sua primeira versao base para preencher o painel com atividade, templates e PDFs recentes."}
+                {focusEntry
+                  ? focusEntry.kind === "draft"
+                    ? "O rascunho local esta mais recente que qualquer versao salva. Retome daqui para nao perder contexto."
+                    : focusEntry.insight.completionScore >= 85
+                      ? "A versao principal esta forte. Revise o preview final e gere o PDF quando quiser."
+                      : "Ainda existe espaco para lapidar essa versao antes da exportacao final."
+                  : "Crie sua primeira versao base para ativar metricas, timeline e atalhos operacionais."}
               </p>
+
+              <div className="mt-6 rounded-[24px] border border-white/12 bg-white/10 px-5 py-5">
+                <div className="flex items-end justify-between gap-4">
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/72">Prontidao</p>
+                    <p className="mt-2 text-5xl font-semibold tracking-tight text-white">
+                      {focusEntry ? `${focusEntry.insight.completionScore}%` : "0%"}
+                    </p>
+                  </div>
+                  <p className="max-w-[10rem] text-right text-xs leading-5 text-white/68">
+                    {focusEntry
+                      ? `${focusEntry.insight.completedCheckpointCount}/${focusEntry.insight.totalCheckpointCount} sinais estrategicos concluidos`
+                      : "Escolha um template para iniciar o progresso"}
+                  </p>
+                </div>
+                <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/10">
+                  <div
+                    className="h-full rounded-full bg-[linear-gradient(90deg,#ccfbf1_0%,#5eead4_100%)]"
+                    style={{
+                      width: `${
+                        focusEntry
+                          ? focusEntry.insight.completionScore > 0
+                            ? Math.max(focusEntry.insight.completionScore, 10)
+                            : 0
+                          : 0
+                      }%`,
+                    }}
+                  />
+                </div>
+              </div>
 
               <div className="mt-6 grid gap-3">
                 <div className="rounded-[22px] border border-white/12 bg-white/10 px-4 py-4">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/80">Template atual</p>
-                  <p className="mt-2 text-base font-semibold text-white">{focusTemplateName}</p>
-                </div>
-                <div className="rounded-[22px] border border-white/12 bg-white/10 px-4 py-4">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/80">Contexto</p>
-                  <p className="mt-2 text-base font-semibold text-white">{latestRole}</p>
-                </div>
-                <div className="rounded-[22px] border border-white/12 bg-white/10 px-4 py-4">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/80">Ultima atividade</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/72">Proximo passo</p>
                   <p className="mt-2 text-base font-semibold text-white">
-                    {latestResume ? formatDashboardMoment(latestResume.updatedAt) : "Sem atividade"}
+                    {focusEntry ? focusEntry.insight.focusLabel : "Escolher template"}
+                  </p>
+                  <p className="mt-2 text-sm leading-6 text-white/72">
+                    {focusEntry ? focusEntry.insight.suggestion : "A primeira versao libera retomada, preview e duplicacao no painel."}
+                  </p>
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-[22px] border border-white/12 bg-white/10 px-4 py-4">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/72">Template</p>
+                    <p className="mt-2 text-base font-semibold text-white">{focusEntry?.templateName || "Moderno"}</p>
+                  </div>
+                  <div className="rounded-[22px] border border-white/12 bg-white/10 px-4 py-4">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/72">Contexto</p>
+                    <p className="mt-2 text-base font-semibold text-white">{focusEntry?.role || "Defina um cargo para ganhar contexto"}</p>
+                  </div>
+                </div>
+
+                <div className="rounded-[22px] border border-white/12 bg-white/10 px-4 py-4">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/72">Leitura do painel</p>
+                  <p className="mt-2 text-base font-semibold text-white">
+                    {focusEntry ? focusEntry.insight.primaryStrength : "Sem atividade registrada"}
+                  </p>
+                  <p className="mt-2 text-sm leading-6 text-white/72">
+                    {focusEntry ? `Ultima atividade em ${formatDashboardMoment(focusEntry.updatedAt)}.` : "Assim que voce salvar algo relevante, esse radar passa a mostrar foco e progresso."}
                   </p>
                 </div>
               </div>
@@ -416,11 +824,16 @@ export default function DashboardPage() {
               <div className="mt-6 flex flex-wrap gap-3">
                 {hasDistinctContinueAction ? (
                   <Button as={Link} className="px-5 py-3" to={continueTarget} variant="secondary">
-                    {latestResume ? "Continuar edicao" : continueLabel}
+                    {continueLabel}
                   </Button>
                 ) : null}
-                {latestResume ? (
-                  <Button as={Link} className="px-5 py-3 text-white hover:bg-white/10 hover:text-white" to={getPreviewRoute(latestResume.id)} variant="ghost">
+                {focusEntry?.previewTo ? (
+                  <Button
+                    as={Link}
+                    className="px-5 py-3 text-white hover:bg-white/10 hover:text-white"
+                    to={focusEntry.previewTo}
+                    variant="ghost"
+                  >
                     Preview final
                   </Button>
                 ) : null}
@@ -429,12 +842,12 @@ export default function DashboardPage() {
           </div>
         </Panel>
 
-        <Panel description="Atalhos operacionais, template dominante e historico recente." title="Acoes rapidas">
+        <Panel description="Atalhos, proximos passos e atividade recente do workspace local." title="Centro de comando">
           <div className="grid gap-3">
             <ActionCard
               as={Link}
               icon="spark"
-              subtitle="Crie uma nova base ou uma versao adaptada."
+              subtitle="Crie uma base nova ou uma versao adaptada por vaga."
               title="Escolher template"
               to={appRoutes.templates}
               tone="accent"
@@ -442,8 +855,12 @@ export default function DashboardPage() {
             {hasDistinctContinueAction ? (
               <ActionCard
                 as={Link}
-                icon="document"
-                subtitle={latestResume ? "Volte direto para a ultima versao atualizada." : "Abra o editor e recupere o rascunho local automaticamente."}
+                icon={focusEntry?.kind === "draft" ? "draft" : "document"}
+                subtitle={
+                  focusEntry?.kind === "draft"
+                    ? "Recupere o rascunho local mais recente e continue do ponto exato."
+                    : "Volte direto para a versao principal mais relevante do momento."
+                }
                 title={continueLabel}
                 to={continueTarget}
               />
@@ -457,7 +874,7 @@ export default function DashboardPage() {
                 as="button"
                 icon="duplicate"
                 onClick={() => handleDuplicate(latestResume.id)}
-                subtitle="Duplique a base atual para uma nova vaga ou contexto."
+                subtitle="Duplique a base atual para outra vaga, senioridade ou contexto."
                 title="Duplicar versao base"
                 type="button"
               />
@@ -496,30 +913,47 @@ export default function DashboardPage() {
             </div>
           </div>
 
+          <div className="mt-5">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-600">Proximos passos</p>
+                <p className="mt-1 text-sm font-semibold text-ink">
+                  {workspaceTasks.length > 0 ? "Acoes sugeridas pelo estado atual do workspace" : "Sem pendencias prioritarias"}
+                </p>
+              </div>
+              <span className="rounded-full border border-slate-200 bg-white/80 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-600">
+                {workspaceTasks.length}
+              </span>
+            </div>
+
+            <div className="space-y-3">
+              {workspaceTasks.length > 0 ? (
+                workspaceTasks.map((item) => <TaskCard item={item} key={item.id} />)
+              ) : (
+                <div className="rounded-[24px] border border-dashed border-slate-300 bg-slate-50/80 px-4 py-4 text-sm leading-6 text-slate-600">
+                  O painel nao encontrou bloqueios prioritarios agora. Aproveite para revisar o preview final ou testar um novo template.
+                </div>
+              )}
+            </div>
+          </div>
+
           <div className="mt-5 rounded-[24px] border border-slate-200 bg-[linear-gradient(180deg,rgba(248,250,252,0.95),rgba(255,255,255,0.86))] p-4">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-600">Ultimos PDFs</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-600">Atividade recente</p>
                 <p className="mt-1 text-sm font-semibold text-ink">
-                  {exportSummary.totalExports > 0 ? `${exportSummary.totalExports} exportacoes registradas` : "Nenhuma exportacao ainda"}
+                  {workspaceTimeline.length > 0 ? "Movimentos mais recentes do workspace" : "Nenhuma atividade registrada"}
                 </p>
               </div>
-              <IconBadge name="download" tone="teal" />
+              <IconBadge name="clock" tone="slate" />
             </div>
 
             <div className="mt-4 space-y-3">
-              {exportSummary.recentExports.length > 0 ? (
-                exportSummary.recentExports.map((item) => (
-                  <div key={item.id} className="rounded-[18px] border border-white/90 bg-white/90 px-4 py-3 shadow-[0_12px_24px_rgba(15,23,42,0.04)]">
-                    <p className="truncate text-sm font-semibold text-ink">{item.fileName}</p>
-                    <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-600">
-                      {formatDashboardMoment(item.exportedAt)}
-                    </p>
-                  </div>
-                ))
+              {workspaceTimeline.length > 0 ? (
+                workspaceTimeline.map((item) => <TimelineItem item={item} key={item.id} />)
               ) : (
                 <div className="rounded-[18px] border border-dashed border-slate-300 bg-white/70 px-4 py-4 text-sm leading-6 text-slate-500">
-                  Gere o primeiro PDF para alimentar esse historico e acompanhar suas entregas recentes.
+                  Assim que voce editar, salvar ou exportar, a timeline passa a mostrar esse historico.
                 </div>
               )}
             </div>
@@ -528,8 +962,14 @@ export default function DashboardPage() {
       </div>
 
       {feedback ? (
-        <div className="rounded-[24px] border border-slate-200 bg-white/80 px-5 py-4 text-sm font-medium text-slate-600 shadow-soft">
-          {feedback}
+        <div
+          className={`rounded-[24px] border px-5 py-4 text-sm font-medium shadow-soft ${
+            feedback.tone === "success"
+              ? "border-emerald-200 bg-emerald-50/85 text-emerald-800"
+              : "border-rose-200 bg-rose-50/85 text-rose-800"
+          }`}
+        >
+          {feedback.message}
         </div>
       ) : null}
 
@@ -540,9 +980,44 @@ export default function DashboardPage() {
           </Panel>
         ) : resumes.length === 0 ? (
           <Panel
-            description="Crie a versao base, ajuste o template e gere seu primeiro PDF em poucos minutos."
+            description="Crie a versao base, acompanhe a prontidao e gere o primeiro PDF em poucos minutos."
             title="Nenhum curriculo salvo ainda"
-          />
+          >
+            <div className="flex flex-wrap gap-3">
+              <Button as={Link} to={appRoutes.templates} variant="accent">
+                Escolher template
+              </Button>
+              {draftInfo ? (
+                <Button as={Link} to={appRoutes.editorNew} variant="secondary">
+                  Retomar rascunho local
+                </Button>
+              ) : null}
+            </div>
+
+            <div className="mt-6 grid gap-4 md:grid-cols-3">
+              <div className="rounded-[24px] border border-slate-200 bg-slate-50/80 p-5">
+                <IconBadge name="spark" tone="teal" />
+                <p className="mt-4 text-sm font-semibold text-ink">1. Escolha o template</p>
+                <p className="mt-2 text-sm leading-6 text-slate-600">
+                  Defina o visual inicial para montar uma base clara e reutilizavel.
+                </p>
+              </div>
+              <div className="rounded-[24px] border border-slate-200 bg-slate-50/80 p-5">
+                <IconBadge name="target" tone="amber" />
+                <p className="mt-4 text-sm font-semibold text-ink">2. Preencha o essencial</p>
+                <p className="mt-2 text-sm leading-6 text-slate-600">
+                  Nome, cargo, resumo, experiencia e skills ja ativam a leitura de prontidao.
+                </p>
+              </div>
+              <div className="rounded-[24px] border border-slate-200 bg-slate-50/80 p-5">
+                <IconBadge name="download" tone="emerald" />
+                <p className="mt-4 text-sm font-semibold text-ink">3. Revise e exporte</p>
+                <p className="mt-2 text-sm leading-6 text-slate-600">
+                  Use o preview final para validar layout, consistencia e gerar o primeiro PDF.
+                </p>
+              </div>
+            </div>
+          </Panel>
         ) : (
           <>
             <div className="mb-5 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
@@ -551,9 +1026,13 @@ export default function DashboardPage() {
                 <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
                   {resumes.length === 1 ? "1 versao pronta para adaptar" : `${resumes.length} versoes prontas para edicao rapida`}
                 </h2>
+                <p className="mt-2 text-sm leading-6 text-slate-600">
+                  {readyResumeCount} {readyResumeCount === 1 ? "versao em ritmo de envio" : "versoes em ritmo de envio"} e {storageMeta.remaining}{" "}
+                  {storageMeta.remaining === 1 ? "slot livre" : "slots livres"} no modo local.
+                </p>
               </div>
               <div className="rounded-full border border-white/80 bg-white/80 px-4 py-2 text-sm font-semibold text-slate-700 shadow-soft">
-                {exportSummary.totalExports} {exportSummary.totalExports === 1 ? "PDF recente" : "PDFs recentes"}
+                Media de prontidao: {averageCompletion}%
               </div>
             </div>
 

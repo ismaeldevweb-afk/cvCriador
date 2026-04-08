@@ -156,16 +156,25 @@ export default function ResumePreview({ resume, compact = false, onPaginationCha
   const pageLabel = `Pagina ${Math.min(currentPage, pageCount)} de ${pageCount}`;
   const pageSummary = pageCount > 1 ? `${pageCount} paginas` : "1 pagina";
   const showOnePageHint = pageCount > 1 && isBeginnerResume(resume);
+  const accessiblePreviewSummary = [
+    `Preview visual do curriculo ${resume.personal?.fullName || resume.title || "sem nome definido"}.`,
+    resume.personal?.role ? `Cargo principal: ${resume.personal.role}.` : null,
+    `Documento paginado em ${pageSummary}.`,
+    "Use os controles da pagina para voltar ao editor ou exportar o PDF final.",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
-    <div className="overflow-hidden rounded-[32px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.95),rgba(255,255,255,0.84))] shadow-float">
-      <div className="flex items-center justify-between border-b border-white/70 bg-white/85 px-5 py-4">
+    <div className="overflow-hidden rounded-[28px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.95),rgba(255,255,255,0.84))] shadow-float sm:rounded-[32px]">
+      <p className="sr-only">{accessiblePreviewSummary}</p>
+      <div className="flex flex-col gap-3 border-b border-white/70 bg-white/85 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.26em] text-slate-400">Preview</p>
-          <p className="mt-1 text-sm text-slate-500">Paginacao A4 sincronizada com a exportacao em PDF.</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.26em] text-slate-600">Preview</p>
+          <p className="mt-1 text-sm text-slate-700">Paginacao A4 sincronizada com a exportacao em PDF.</p>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-700">
             {resume.customization.fontFamily}
           </span>
           <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">Live</span>
@@ -174,9 +183,13 @@ export default function ResumePreview({ resume, compact = false, onPaginationCha
 
       <div
         ref={scrollAreaRef}
-        className={compact ? "max-h-none bg-[#eef2f7] p-4" : "max-h-[calc(100vh-12rem)] overflow-auto bg-[#eef2f7] p-4"}
+        className={
+          compact
+            ? "max-h-none bg-[#eef2f7] p-3 sm:p-4"
+            : "bg-[#eef2f7] p-3 sm:p-4 xl:max-h-[calc(100vh-12rem)] xl:overflow-auto"
+        }
       >
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-[22px] border border-white/70 bg-white/75 px-4 py-3 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400 shadow-[0_12px_25px_rgba(15,23,42,0.05)]">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-[22px] border border-white/70 bg-white/75 px-4 py-3 text-xs font-semibold uppercase tracking-[0.18em] text-slate-700 shadow-[0_12px_25px_rgba(15,23,42,0.05)]">
           <span>Canvas A4 real</span>
           <span className="flex items-center gap-2">
             <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: theme.primaryColor }} />
@@ -184,7 +197,7 @@ export default function ResumePreview({ resume, compact = false, onPaginationCha
           </span>
         </div>
 
-        <div className="mb-4 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+        <div className="mb-4 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-700">
           <span className="rounded-full bg-white px-3 py-1 shadow-[0_8px_18px_rgba(15,23,42,0.05)]">{pageSummary}</span>
           <span className="rounded-full bg-white px-3 py-1 shadow-[0_8px_18px_rgba(15,23,42,0.05)]">
             {isPaginationReady ? "Preview pronto para exportacao" : "Medindo conteudo"}
@@ -204,7 +217,7 @@ export default function ResumePreview({ resume, compact = false, onPaginationCha
             </PageContainer>
           </div>
 
-          <div ref={pageListRef} className="flex flex-col items-center gap-6">
+          <div ref={pageListRef} aria-hidden="true" className="flex flex-col items-center gap-4 sm:gap-6">
             {pageStarts.map((pageStart, index) => (
               <div key={`${index}-${pageStart}`} data-preview-page>
                 <PageContainer pageStart={pageStart} scale={previewScale}>

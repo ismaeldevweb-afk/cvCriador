@@ -1,5 +1,5 @@
-import { Suspense, lazy, startTransition, useEffect, useMemo, useRef, useState } from "react";
-import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import AiAssistantPanel from "../components/AiAssistantPanel";
 import ArraySectionEditor from "../components/ArraySectionEditor";
 import Button from "../components/Button";
@@ -12,8 +12,9 @@ import { useResumeEditor } from "../hooks/useResumeEditor";
 import AppLayout from "../layouts/AppLayout";
 import { aiApi } from "../services/aiApi";
 import { resumeApi, resumeDraftApi } from "../services/resumeApi";
-import { appRoutes, getEditorRoute, getPreviewRoute } from "../utils/routes";
 import { applyImportPreviewToResume } from "../utils/profileImport";
+import { buildResumeInsight } from "../utils/resumeInsights";
+import { appRoutes, getEditorRoute, getPreviewRoute } from "../utils/routes";
 import {
   colorOptions,
   createEmptyResume,
@@ -24,6 +25,7 @@ import {
   templateOptions,
   titleScaleOptions,
 } from "../utils/resumeDefaults";
+import { cn } from "../utils/cn";
 import { isEmailValid, validateResume } from "../utils/validators";
 
 const experienceFields = [
@@ -68,9 +70,54 @@ const projectFields = [
   { name: "technologies", label: "Tecnologias", placeholder: "Ex.: React, Node.js, Tailwind CSS" },
   { name: "link", label: "Link", placeholder: "Ex.: portfolio.dev" },
 ];
-
 const AUTO_SAVE_DELAY_MS = 800;
-const ResumePreview = lazy(() => import("../components/ResumePreview"));
+const DEFAULT_EDITOR_FEEDBACK = "Preencha os campos e acompanhe o curriculo em tempo real.";
+
+const stepGuides = [
+  {
+    label: editorSteps[0],
+    description: "Defina identidade, contato e narrativa principal para o documento.",
+    readyLabel: "Base principal pronta",
+    successTip: "A base principal esta consistente. Revise texto e alinhamento com a vaga alvo.",
+  },
+  {
+    label: editorSteps[1],
+    description: "Mostre historico profissional e formacao com contexto claro.",
+    readyLabel: "Trajetoria registrada",
+    successTip: "A trajetoria principal esta montada. Revise impacto e clareza de cada bloco.",
+  },
+  {
+    label: editorSteps[2],
+    description: "Reforce repertorio tecnico, idiomas e credenciais.",
+    readyLabel: "Competencias bem cobertas",
+    successTip: "As competencias principais ja sustentam o posicionamento do curriculo.",
+  },
+  {
+    label: editorSteps[3],
+    description: "Use projetos e detalhes finais para provar execucao e fechar a narrativa.",
+    readyLabel: "Fechamento bem resolvido",
+    successTip: "Os blocos finais estao fortes. Revise o preview e prepare a exportacao.",
+  },
+];
+
+const toneBadgeClasses = {
+  slate: "bg-slate-100 text-slate-700",
+  teal: "bg-brand-50 text-brand-700",
+  amber: "bg-amber-50 text-amber-700",
+  rose: "bg-rose-50 text-rose-700",
+  emerald: "bg-emerald-50 text-emerald-700",
+};
+
+const issueLabelMap = {
+  title: "Titulo interno",
+  fullName: "Nome completo",
+  role: "Cargo principal",
+  email: "Email de contato",
+};
+
+function hasText(value) {
+  return String(value ?? "").trim().length > 0;
+}
 
 function buildResumePayload(resume) {
   const normalizedTitle = String(resume.title ?? "").trim();
@@ -98,26 +145,139 @@ function formatSavedAt(value) {
   });
 }
 
-function PreviewFallbackCard() {
+function getProgressTone(score) {
+  if (score >= 85) {
+    return "emerald";
+  }
+
+  if (score >= 60) {
+    return "teal";
+  }
+
+  if (score >= 35) {
+    return "amber";
+  }
+
+  return "slate";
+}
+
+function buildEditorStepMeta({ resume, insight }) {
+  const validEmail = hasText(resume.personal.email) && isEmailValid(resume.personal.email);
+  const summaryReady = hasText(resume.summary) || hasText(resume.personal.objective);
+  const additionalInfoReady = hasText(resume.additionalInfo);
+  const proofCount = insight.counts.projects + insight.counts.certifications;
+
+  const checklists = [
+    [
+      { done: hasText(resume.title), tip: "Defina um titulo interno para organizar melhor suas versoes." },
+      { done: hasText(resume.personal.fullName), tip: "Preencha o nome completo para posicionar o documento." },
+      { done: hasText(resume.personal.role), tip: "Defina cargo ou objetivo principal para dar contexto imediato." },
+      { done: validEmail, tip: "Adicione um email valido para liberar a exportacao sem pendencias." },
+      { done: insight.counts.contacts >= 2, tip: "Inclua pelo menos dois canais de contato para facilitar o retorno." },
+      { done: summaryReady, tip: "Escreva resumo ou objetivo para fortalecer a narrativa logo no inicio." },
+    ],
+    [
+      { done: insight.counts.experience > 0, tip: "Inclua ao menos uma experiencia com cargo, empresa e entregas." },
+      { done: insight.counts.education > 0, tip: "Adicione a formacao principal para fechar a base academica." },
+      { done: insight.counts.experience >= 2 || hasText(resume.experience[0]?.description), tip: "Aprofunde impacto e escopo nas experiencias mais relevantes." },
+    ],
+    [
+      { done: insight.counts.skills >= 3, tip: "Liste ao menos 3 skills diretamente ligadas a vaga." },
+      { done: insight.counts.languages > 0 || insight.counts.certifications > 0, tip: "Idiomas ou certificacoes ajudam a reforcar repertorio." },
+      {
+        done: insight.counts.skills >= 6 || insight.counts.certifications > 0,
+        tip: "Amplie a cobertura tecnica para sustentar o posicionamento profissional.",
+      },
+    ],
+    [
+      { done: insight.counts.projects > 0, tip: "Adicione ao menos um projeto ou case com impacto real." },
+      { done: proofCount > 1 || additionalInfoReady, tip: "Use informacoes finais para fechar a narrativa com contexto extra." },
+      {
+        done: insight.counts.projects > 0 && (additionalInfoReady || hasText(resume.personal.portfolio) || hasText(resume.personal.github)),
+        tip: "Conecte projeto e portfolio para facilitar validacao externa do trabalho.",
+      },
+    ],
+  ];
+
+  return stepGuides.map((guide, index) => {
+    const checklist = checklists[index];
+    const completedCount = checklist.filter((item) => item.done).length;
+    const totalCount = checklist.length;
+    const completionScore = Math.round((completedCount / totalCount) * 100);
+    const remainingItems = checklist.filter((item) => !item.done);
+
+    const highlights = [
+      `${insight.counts.contacts} contatos`,
+      `${insight.counts.experience + insight.counts.education} blocos`,
+      `${insight.counts.skills} skills`,
+      `${proofCount} provas`,
+    ];
+
+    return {
+      ...guide,
+      completionScore,
+      completedCount,
+      totalCount,
+      detail: remainingItems.length === 0 ? guide.readyLabel : `${remainingItems.length} ajustes pendentes`,
+      tip: remainingItems[0]?.tip ?? guide.successTip,
+      tone: getProgressTone(completionScore),
+      highlight: highlights[index],
+      isReady: remainingItems.length === 0,
+    };
+  });
+}
+
+function StepTab({ item, isActive, onClick }) {
   return (
-    <Panel>
-      <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Preview em carregamento</p>
-      <p className="mt-3 text-sm leading-7 text-slate-600">A visualizacao detalhada do curriculo esta sendo preparada.</p>
-    </Panel>
+    <button
+      className={cn(
+        "rounded-[18px] border p-3 text-left transition",
+        isActive
+          ? "border-ink bg-ink text-white shadow-[0_18px_36px_rgba(15,23,42,0.16)]"
+          : "border-slate-200 bg-white hover:border-slate-400 hover:bg-slate-50/80",
+      )}
+      onClick={onClick}
+      type="button"
+    >
+      <div className="flex items-center justify-between gap-3">
+        <p className={cn("text-sm font-semibold tracking-tight", isActive ? "text-white" : "text-ink")}>{item.label}</p>
+        <span
+          className={cn(
+            "rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]",
+            isActive ? "bg-white/10 text-white" : toneBadgeClasses[item.tone] ?? toneBadgeClasses.slate,
+          )}
+        >
+          {item.completionScore}%
+        </span>
+      </div>
+    </button>
+  );
+}
+
+function StepGroup({ kicker, title, description, children, action }) {
+  return (
+    <div className="rounded-[26px] border border-slate-200 bg-[linear-gradient(145deg,rgba(255,255,255,0.98),rgba(248,250,252,0.92))] p-4 shadow-[0_14px_32px_rgba(15,23,42,0.05)] sm:p-5">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">{kicker}</p>
+          <h3 className="mt-2 text-lg font-semibold tracking-tight text-ink">{title}</h3>
+          <p className="mt-2 text-sm leading-6 text-slate-600">{description}</p>
+        </div>
+        {action ? <div className="shrink-0">{action}</div> : null}
+      </div>
+      <div className="mt-5">{children}</div>
+    </div>
   );
 }
 
 export default function EditorPage() {
+  const location = useLocation();
   const navigate = useNavigate();
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const isNew = !id;
   const isMountedRef = useRef(true);
   const editorSectionRef = useRef(null);
-  const editorCardRef = useRef(null);
-  const previewSectionRef = useRef(null);
-  const customizationSectionRef = useRef(null);
-  const assistantSectionRef = useRef(null);
   const skipNextAutoSaveRef = useRef(false);
   const autoSaveTimerRef = useRef(null);
   const {
@@ -134,24 +294,15 @@ export default function EditorPage() {
     addSkill,
     removeSkill,
     updateCustomization,
-    resetResume,
   } = useResumeEditor();
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(!isNew);
   const [isSaving, setIsSaving] = useState(false);
-  const [isExporting, setIsExporting] = useState(false);
-  const [feedback, setFeedback] = useState("Preencha os campos e acompanhe o curriculo em tempo real.");
+  const [feedback, setFeedback] = useState(DEFAULT_EDITOR_FEEDBACK);
   const [errors, setErrors] = useState({});
   const [saveState, setSaveState] = useState(isNew ? "idle" : "saved");
   const [lastSavedAt, setLastSavedAt] = useState(null);
-  const [editorCardHeight, setEditorCardHeight] = useState(null);
-  const [shouldLoadPreview, setShouldLoadPreview] = useState(false);
-  const [paginationInfo, setPaginationInfo] = useState({
-    isReady: false,
-    pageCount: 1,
-    pageStarts: [0],
-  });
-  const [isImportPanelOpen, setIsImportPanelOpen] = useState(false);
+  const [activeSupportPanel, setActiveSupportPanel] = useState(null);
   const [busyActions, setBusyActions] = useState({
     summary: false,
     generatedSummary: false,
@@ -194,7 +345,7 @@ export default function EditorPage() {
           setFeedback("Rascunho local recuperado automaticamente.");
           setSaveState("saved");
           setLastSavedAt(draft.updatedAt);
-          setIsImportPanelOpen(false);
+          setActiveSupportPanel(null);
           setIsLoading(false);
           return () => {
             cancelled = true;
@@ -227,7 +378,7 @@ export default function EditorPage() {
       );
       setSaveState("idle");
       setLastSavedAt(null);
-      setIsImportPanelOpen(false);
+      setActiveSupportPanel(null);
       setIsLoading(false);
       return () => {
         cancelled = true;
@@ -235,7 +386,7 @@ export default function EditorPage() {
     }
 
     setIsLoading(true);
-    setIsImportPanelOpen(false);
+    setActiveSupportPanel(null);
 
     resumeApi
       .getById(id)
@@ -261,7 +412,7 @@ export default function EditorPage() {
           return;
         }
 
-        setIsImportPanelOpen(false);
+        setActiveSupportPanel(null);
         setIsLoading(false);
       });
 
@@ -281,8 +432,6 @@ export default function EditorPage() {
     shouldStartFresh,
   ]);
 
-  const canPreview = !isNew && Boolean(id);
-
   const formErrors = useMemo(() => {
     const nextErrors = validateResume(resume);
 
@@ -292,13 +441,33 @@ export default function EditorPage() {
 
     return nextErrors;
   }, [resume]);
-  const currentStepLabel = editorSteps[currentStep] ?? editorSteps[0];
-  const progressPercent = ((currentStep + 1) / editorSteps.length) * 100;
+
+  const insight = useMemo(() => buildResumeInsight(resume), [resume]);
+  const stepMeta = useMemo(() => buildEditorStepMeta({ resume, insight }), [insight, resume]);
+  const currentStepMeta = stepMeta[currentStep] ?? stepMeta[0];
+  const recommendedStepIndex = useMemo(() => {
+    const nextIndex = stepMeta.findIndex((item) => !item.isReady);
+    return nextIndex === -1 ? editorSteps.length - 1 : nextIndex;
+  }, [stepMeta]);
+  const recommendedStepMeta = stepMeta[recommendedStepIndex] ?? currentStepMeta;
   const currentTemplateName = templateOptions.find((item) => item.id === resume.template)?.name ?? resume.template;
   const currentFontName = fontOptions.find((item) => item.id === resume.customization.fontFamily)?.name ?? resume.customization.fontFamily;
   const currentSpacingName = spacingOptions.find((item) => item.id === resume.customization.spacing)?.name ?? resume.customization.spacing;
   const hasUnsavedChanges = saveState === "dirty" || saveState === "saving" || saveState === "error";
   const resumeStorageMeta = useMemo(() => resumeApi.getStorageMeta(), [id, isNew, saveState]);
+  const blockingItems = Object.entries(formErrors).map(([field, message]) => ({
+    id: field,
+    title: issueLabelMap[field] ?? field,
+    message,
+  }));
+  const blockingCount = blockingItems.length;
+  const blockingSummary = useMemo(() => {
+    if (blockingItems.length === 0) {
+      return "";
+    }
+
+    return blockingItems.map((item) => item.title).join(", ");
+  }, [blockingItems]);
   const saveStatusMeta = useMemo(() => {
     if (saveState === "saving") {
       return {
@@ -355,70 +524,25 @@ export default function EditorPage() {
       dotClassName: "bg-slate-400",
     };
   }, [isNew, lastSavedAt, saveState]);
-
-  function ensurePreviewReady() {
-    startTransition(() => {
-      setShouldLoadPreview(true);
-    });
-  }
-
-  useEffect(() => {
-    const node = editorCardRef.current;
-
-    if (!node || typeof window === "undefined") {
-      return undefined;
+  const visibleFeedback = useMemo(() => {
+    if (!feedback || feedback === DEFAULT_EDITOR_FEEDBACK || feedback.startsWith("Template ")) {
+      return "";
     }
 
-    const syncEditorCardHeight = () => {
-      if (window.innerWidth < 1280) {
-        setEditorCardHeight(null);
-        return;
-      }
-
-      setEditorCardHeight(node.getBoundingClientRect().height);
-    };
-
-    syncEditorCardHeight();
-
-    const resizeObserver = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(syncEditorCardHeight);
-    resizeObserver?.observe(node);
-    window.addEventListener("resize", syncEditorCardHeight);
-
-    return () => {
-      resizeObserver?.disconnect();
-      window.removeEventListener("resize", syncEditorCardHeight);
-    };
-  }, [isLoading]);
-
-  useEffect(() => {
-    if (shouldLoadPreview) {
-      return undefined;
+    if (
+      feedback === "Curriculo criado com sucesso." ||
+      feedback === "Curriculo salvo com sucesso." ||
+      feedback.startsWith("Curriculo salvo localmente.")
+    ) {
+      return "";
     }
 
-    const node = previewSectionRef.current;
-
-    if (!node || typeof IntersectionObserver === "undefined") {
-      return undefined;
-    }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((entry) => entry.isIntersecting)) {
-          ensurePreviewReady();
-          observer.disconnect();
-        }
-      },
-      {
-        rootMargin: "320px 0px",
-      },
-    );
-
-    observer.observe(node);
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [shouldLoadPreview]);
+    return feedback;
+  }, [feedback]);
+  const showRecommendedStepAction = recommendedStepIndex !== currentStep;
+  const compactSupportButtonClassName = "w-full px-4 py-2 text-xs sm:w-auto";
+  const supportPanelButtonClassName =
+    "w-full border border-transparent px-4 py-2 text-xs text-slate-600 hover:border-slate-200 hover:bg-white hover:text-ink sm:w-auto";
 
   function scrollToSection(targetRef) {
     targetRef.current?.scrollIntoView({
@@ -520,11 +644,6 @@ export default function EditorPage() {
     };
   }, [hasUnsavedChanges]);
 
-  function syncErrors() {
-    setErrors(formErrors);
-    return Object.keys(formErrors).length === 0;
-  }
-
   async function handleSave() {
     setErrors(formErrors);
 
@@ -586,8 +705,20 @@ export default function EditorPage() {
   }
 
   function handlePreviewNavigation() {
-    ensurePreviewReady();
-    scrollToSection(previewSectionRef);
+    const payload = buildResumePayload(resume);
+    const previewPath = id ? getPreviewRoute(id) : appRoutes.previewDraft;
+
+    navigate(previewPath, {
+      state: {
+        editorPath: `${location.pathname}${location.search}`,
+        resumeRecord: {
+          id: id ?? null,
+          title: payload.title,
+          template: resume.template,
+          data: resume,
+        },
+      },
+    });
   }
 
   function handleImportedProfile(importPreview, selectedSections) {
@@ -596,50 +727,8 @@ export default function EditorPage() {
     replaceResume(nextResume);
     setCurrentStep(0);
     setFeedback("Dados importados com sucesso. Revise os blocos preenchidos antes de salvar.");
-    setIsImportPanelOpen(false);
-    ensurePreviewReady();
+    setActiveSupportPanel(null);
     scrollToSection(editorSectionRef);
-  }
-
-  async function handleExport() {
-    if (!syncErrors()) {
-      setFeedback("Corrija os dados principais antes de exportar.");
-      return;
-    }
-
-    ensurePreviewReady();
-
-    if (!paginationInfo.isReady) {
-      setFeedback("Estamos preparando a paginacao real do preview. Aguarde um instante e tente exportar novamente.");
-      scrollToSection(previewSectionRef);
-      return;
-    }
-
-    setIsExporting(true);
-
-    try {
-      const { createPdfFileName, exportPdfFile } = await import("../services/pdfApi");
-
-      await exportPdfFile({
-        resume,
-        fileName: createPdfFileName(resume.personal.fullName),
-        pagination: paginationInfo,
-      });
-
-      if (!isMountedRef.current) {
-        return;
-      }
-
-      setFeedback("PDF gerado e enviado para download.");
-    } catch (error) {
-      if (isMountedRef.current) {
-        setFeedback(error.message);
-      }
-    } finally {
-      if (isMountedRef.current) {
-        setIsExporting(false);
-      }
-    }
   }
 
   async function runAiAction(key, callback) {
@@ -711,119 +800,170 @@ export default function EditorPage() {
     });
   }
 
+  function handleResetCurrentContent() {
+    if (!window.confirm("Deseja limpar o conteudo atual e manter apenas o template e o estilo selecionados?")) {
+      return;
+    }
+
+    const baseResume = createEmptyResume();
+
+    replaceResume({
+      ...baseResume,
+      template: resume.template,
+      customization: {
+        ...baseResume.customization,
+        ...resume.customization,
+      },
+    });
+    setCurrentStep(0);
+    setErrors({});
+    setFeedback("Conteudo reiniciado. O template e o estilo atual foram preservados.");
+    scrollToSection(editorSectionRef);
+  }
+
+  function handleGoToRecommendedStep() {
+    setCurrentStep(recommendedStepIndex);
+    scrollToSection(editorSectionRef);
+  }
+
+  function toggleSupportPanel(panelName) {
+    setActiveSupportPanel((current) => (current === panelName ? null : panelName));
+  }
+
   function renderStep() {
     switch (currentStep) {
       case 0:
         return (
           <div className="space-y-6">
-            <div className="grid gap-4 md:grid-cols-2">
-              <Field
-                error={errors.title}
-                label="Titulo interno"
-                name="resume-title"
-                onChange={(event) => updateTitle(event.target.value)}
-                placeholder="Ex.: Curriculo Product Designer 2026"
-                value={resume.title}
-              />
-              <Field
-                autoComplete="name"
-                error={errors.fullName}
-                label="Nome completo"
-                name="full-name"
-                onChange={(event) => updatePersonal("fullName", event.target.value)}
-                placeholder="Seu nome completo"
-                value={resume.personal.fullName}
-              />
-              <Field
-                error={errors.role}
-                label="Cargo ou objetivo principal"
-                name="role"
-                onChange={(event) => updatePersonal("role", event.target.value)}
-                placeholder="Ex.: Desenvolvedor Frontend Junior"
-                value={resume.personal.role}
-              />
-              <Field
-                autoComplete="address-level2"
-                label="Cidade"
-                name="city"
-                onChange={(event) => updatePersonal("city", event.target.value)}
-                placeholder="Ex.: Recife, PE"
-                value={resume.personal.city}
-              />
-              <Field
-                autoComplete="email"
-                error={errors.email}
-                label="Email"
-                name="email"
-                onChange={(event) => updatePersonal("email", event.target.value)}
-                placeholder="voce@email.com"
-                type="email"
-                value={resume.personal.email}
-              />
-              <Field
-                autoComplete="tel"
-                label="Telefone"
-                name="phone"
-                onChange={(event) => updatePersonal("phone", event.target.value)}
-                placeholder="+55 11 99999-9999"
-                value={resume.personal.phone}
-              />
-              <Field
-                autoComplete="url"
-                label="LinkedIn"
-                name="linkedin"
-                onChange={(event) => updatePersonal("linkedin", event.target.value)}
-                placeholder="linkedin.com/in/seunome"
-                value={resume.personal.linkedin}
-              />
-              <Field
-                autoComplete="url"
-                label="GitHub"
-                name="github"
-                onChange={(event) => updatePersonal("github", event.target.value)}
-                placeholder="github.com/seunome"
-                value={resume.personal.github}
-              />
-              <div className="md:col-span-2">
+            <StepGroup
+              kicker="Identidade base"
+              title="Posicione a versao principal"
+              description="Defina nome, cargo, cidade e um titulo interno claro para localizar esta variacao depois."
+            >
+              <div className="grid gap-4 md:grid-cols-2">
                 <Field
-                  autoComplete="url"
-                  label="Portfolio"
-                  name="portfolio"
-                  onChange={(event) => updatePersonal("portfolio", event.target.value)}
-                  placeholder="seuportfolio.dev"
-                  value={resume.personal.portfolio}
+                  error={errors.title}
+                  label="Titulo interno"
+                  name="resume-title"
+                  onChange={(event) => updateTitle(event.target.value)}
+                  placeholder="Ex.: Curriculo Product Designer 2026"
+                  value={resume.title}
+                />
+                <Field
+                  autoComplete="name"
+                  error={errors.fullName}
+                  label="Nome completo"
+                  name="full-name"
+                  onChange={(event) => updatePersonal("fullName", event.target.value)}
+                  placeholder="Seu nome completo"
+                  value={resume.personal.fullName}
+                />
+                <Field
+                  error={errors.role}
+                  label="Cargo ou objetivo principal"
+                  name="role"
+                  onChange={(event) => updatePersonal("role", event.target.value)}
+                  placeholder="Ex.: Desenvolvedor Frontend Junior"
+                  value={resume.personal.role}
+                />
+                <Field
+                  autoComplete="address-level2"
+                  label="Cidade"
+                  name="city"
+                  onChange={(event) => updatePersonal("city", event.target.value)}
+                  placeholder="Ex.: Recife, PE"
+                  value={resume.personal.city}
                 />
               </div>
-              <div className="md:col-span-2">
+            </StepGroup>
+
+            <StepGroup
+              kicker="Contato e presenca"
+              title="Abra canais claros para retorno"
+              description="Use email, telefone e links profissionais para dar continuidade ao processo sem friccao."
+            >
+              <div className="grid gap-4 md:grid-cols-2">
+                <Field
+                  autoComplete="email"
+                  error={errors.email}
+                  label="Email"
+                  name="email"
+                  onChange={(event) => updatePersonal("email", event.target.value)}
+                  placeholder="voce@email.com"
+                  type="email"
+                  value={resume.personal.email}
+                />
+                <Field
+                  autoComplete="tel"
+                  label="Telefone"
+                  name="phone"
+                  onChange={(event) => updatePersonal("phone", event.target.value)}
+                  placeholder="+55 11 99999-9999"
+                  value={resume.personal.phone}
+                />
                 <Field
                   autoComplete="url"
-                  helperText="Use uma URL publica de imagem. Fotos em base64 ou arquivos locais nao sao persistidos no modo local."
-                  label="Foto profissional"
-                  name="photo"
-                  onChange={(event) => updatePersonal("photo", event.target.value)}
-                  placeholder="https://exemplo.com/foto-profissional.jpg"
-                  value={resume.personal.photo}
+                  label="LinkedIn"
+                  name="linkedin"
+                  onChange={(event) => updatePersonal("linkedin", event.target.value)}
+                  placeholder="linkedin.com/in/seunome"
+                  value={resume.personal.linkedin}
                 />
-              </div>
-              {resume.personal.photo ? (
+                <Field
+                  autoComplete="url"
+                  label="GitHub"
+                  name="github"
+                  onChange={(event) => updatePersonal("github", event.target.value)}
+                  placeholder="github.com/seunome"
+                  value={resume.personal.github}
+                />
                 <div className="md:col-span-2">
-                  <div className="flex items-center gap-4 rounded-[24px] border border-slate-200 bg-slate-50/80 p-4">
-                    <img
-                      alt={resume.personal.fullName || "Preview da foto profissional"}
-                      className="h-20 w-20 rounded-[22px] border border-slate-200 object-cover shadow-[0_14px_30px_rgba(15,23,42,0.08)]"
-                      referrerPolicy="no-referrer"
-                      src={resume.personal.photo}
-                    />
-                    <div>
-                      <p className="text-sm font-semibold text-slate-800">Preview da foto</p>
-                      <p className="mt-1 text-xs leading-6 text-slate-500">
-                        A imagem sera exibida apenas nos templates que usam foto e na exportacao em PDF.
-                      </p>
-                    </div>
+                  <Field
+                    autoComplete="url"
+                    label="Portfolio"
+                    name="portfolio"
+                    onChange={(event) => updatePersonal("portfolio", event.target.value)}
+                    placeholder="seuportfolio.dev"
+                    value={resume.personal.portfolio}
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <Field
+                    autoComplete="url"
+                    helperText="Use uma URL publica de imagem. Fotos em base64 ou arquivos locais nao sao persistidos no modo local."
+                    label="Foto profissional"
+                    name="photo"
+                    onChange={(event) => updatePersonal("photo", event.target.value)}
+                    placeholder="https://exemplo.com/foto-profissional.jpg"
+                    value={resume.personal.photo}
+                  />
+                </div>
+              </div>
+
+              {resume.personal.photo ? (
+                <div className="mt-5 flex flex-col gap-4 rounded-[24px] border border-slate-200 bg-slate-50/80 p-4 sm:flex-row sm:items-center">
+                  <img
+                    alt={resume.personal.fullName || "Preview da foto profissional"}
+                    className="h-20 w-20 rounded-[22px] border border-slate-200 object-cover shadow-[0_14px_30px_rgba(15,23,42,0.08)]"
+                    referrerPolicy="no-referrer"
+                    src={resume.personal.photo}
+                  />
+                  <div>
+                    <p className="text-sm font-semibold text-slate-800">Preview da foto</p>
+                    <p className="mt-1 text-xs leading-6 text-slate-500">
+                      A imagem sera exibida apenas nos templates que usam foto e na exportacao em PDF.
+                    </p>
                   </div>
                 </div>
               ) : null}
-              <div className="md:col-span-2">
+            </StepGroup>
+
+            <StepGroup
+              kicker="Narrativa profissional"
+              title="Mostre intencao e contexto"
+              description="Objetivo e resumo explicam por que esta versao existe e como voce quer ser percebido."
+            >
+              <div className="grid gap-4">
                 <Field
                   as="textarea"
                   label="Objetivo profissional"
@@ -832,8 +972,6 @@ export default function EditorPage() {
                   placeholder="Ex.: Busco uma oportunidade para crescer em produto digital, contribuindo com foco em UX, colaboracao e entrega."
                   value={resume.personal.objective}
                 />
-              </div>
-              <div className="md:col-span-2">
                 <Field
                   as="textarea"
                   label="Resumo profissional"
@@ -843,12 +981,12 @@ export default function EditorPage() {
                   value={resume.summary}
                 />
               </div>
-            </div>
+            </StepGroup>
           </div>
         );
       case 1:
         return (
-          <div className="space-y-8">
+          <div className="space-y-6">
             <ArraySectionEditor
               addLabel="Adicionar experiencia"
               description="Liste experiencias com foco em impacto, entregas e resultados."
@@ -873,13 +1011,8 @@ export default function EditorPage() {
         );
       case 2:
         return (
-          <div className="space-y-8">
-            <SkillsEditor
-              onAdd={addSkill}
-              onChange={updateSkill}
-              onRemove={removeSkill}
-              skills={resume.skills}
-            />
+          <div className="space-y-6">
+            <SkillsEditor onAdd={addSkill} onChange={updateSkill} onRemove={removeSkill} skills={resume.skills} />
             <ArraySectionEditor
               addLabel="Adicionar idioma"
               description="Liste idiomas e niveis para dar mais contexto ao perfil."
@@ -904,7 +1037,7 @@ export default function EditorPage() {
         );
       case 3:
         return (
-          <div className="space-y-8">
+          <div className="space-y-6">
             <ArraySectionEditor
               addLabel="Adicionar projeto"
               description="Destaque cases que comprovem resultado, autoria e profundidade."
@@ -915,14 +1048,20 @@ export default function EditorPage() {
               onRemove={(itemId) => removeListItem("projects", itemId)}
               title="Projetos"
             />
-            <Field
-              as="textarea"
-              label="Informacoes adicionais"
-              name="additional-info"
-              onChange={(event) => updateAdditionalInfo(event.target.value)}
-              placeholder="Espaco para voluntariado, premios, disponibilidade, mobilidade ou outros detalhes importantes."
-              value={resume.additionalInfo}
-            />
+            <StepGroup
+              kicker="Fechamento"
+              title="Contexto adicional"
+              description="Use este bloco apenas para o que realmente reforca disponibilidade, premios, mobilidade ou contexto final."
+            >
+              <Field
+                as="textarea"
+                label="Informacoes adicionais"
+                name="additional-info"
+                onChange={(event) => updateAdditionalInfo(event.target.value)}
+                placeholder="Espaco para voluntariado, premios, disponibilidade, mobilidade ou outros detalhes importantes."
+                value={resume.additionalInfo}
+              />
+            </StepGroup>
           </div>
         );
       default:
@@ -934,24 +1073,16 @@ export default function EditorPage() {
     <AppLayout
       actions={
         <>
-          <Button onClick={() => setIsImportPanelOpen((value) => !value)} variant="ghost">
-            {isImportPanelOpen ? "Fechar importacao" : "Importar perfil"}
+          <Button className="w-full sm:w-auto" onClick={handlePreviewNavigation} variant="secondary">
+            Abrir preview
           </Button>
-          {canPreview ? (
-            <Button as={Link} to={getPreviewRoute(id)} variant="secondary">
-              Visualizar
-            </Button>
-          ) : null}
-          <Button disabled={isExporting} onClick={handleExport} variant="secondary">
-            {isExporting ? "Gerando PDF..." : "Exportar PDF"}
-          </Button>
-          <Button disabled={isSaving} onClick={handleSave} variant="primary">
+          <Button className="w-full sm:w-auto" disabled={isSaving} onClick={handleSave} variant="primary">
             {isSaving ? "Salvando..." : "Salvar agora"}
           </Button>
         </>
       }
-      contentClassName="max-w-none px-4 py-8 sm:px-6 lg:px-8 2xl:px-10"
-      subtitle="Editor estruturado em secoes, preview instantaneo, recursos inteligentes e layout pronto para evoluir como SaaS."
+      contentClassName="max-w-none px-3 py-6 sm:px-6 sm:py-8 lg:px-8 2xl:px-10"
+      subtitle="Fluxo mais direto para preencher no editor e revisar o preview em uma tela separada."
       title={isNew ? "Novo curriculo" : "Editar curriculo"}
     >
       {isLoading ? (
@@ -960,48 +1091,71 @@ export default function EditorPage() {
         </Panel>
       ) : (
         <div className="space-y-6">
-          {isImportPanelOpen ? (
-            <ProfileImportPanel
-              onApply={handleImportedProfile}
-              onDismiss={() => setIsImportPanelOpen(false)}
-            />
-          ) : null}
-
-          <div className="flex flex-col gap-4 rounded-[28px] border border-white/80 bg-[linear-gradient(145deg,rgba(255,255,255,0.95),rgba(255,255,255,0.82))] px-5 py-5 shadow-soft md:flex-row md:items-center md:justify-between">
-            <div className="flex items-start gap-4">
-              <span className={`mt-1 h-2.5 w-2.5 rounded-full ${saveStatusMeta.dotClassName}`} />
-              <div className="max-w-2xl">
-                <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-400">Status do editor</p>
-                <p aria-live="polite" className="mt-2 text-sm font-semibold leading-7 text-slate-800">
-                  {saveStatusMeta.description}
-                </p>
-                <p className="mt-1 text-sm leading-7 text-slate-600">{feedback}</p>
-                <div className="mt-4">
-                  <div className="flex items-center justify-between gap-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-                    <span>Auto-save</span>
-                    <span>{saveStatusMeta.label}</span>
-                  </div>
-                  <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100">
-                    <div
-                      className={`h-2 rounded-full transition-all duration-300 ${saveStatusMeta.progressClassName}`}
-                      style={{ width: `${saveStatusMeta.progress}%` }}
-                    />
-                  </div>
+          <Panel className="p-4 sm:p-5">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+              <div>
+                <h2 className="text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
+                  {resume.title || "Meu curriculo"}
+                </h2>
+                <div className="mt-3 flex flex-col gap-1.5 text-sm">
+                  <p className="flex items-center gap-2 text-slate-600">
+                    <span className={cn("h-2 w-2 rounded-full", saveStatusMeta.dotClassName)} />
+                    {saveStatusMeta.label}
+                  </p>
+                  <p className="text-slate-500">Template: {currentTemplateName}</p>
                 </div>
               </div>
+              <div className="grid gap-2 sm:flex sm:flex-wrap lg:justify-end">
+                {showRecommendedStepAction ? (
+                  <Button className={compactSupportButtonClassName} onClick={handleGoToRecommendedStep} variant="secondary">
+                    Ir para {recommendedStepMeta.label}
+                  </Button>
+                ) : null}
+                <Button
+                  className={cn(
+                    supportPanelButtonClassName,
+                    activeSupportPanel === "import"
+                      ? "border-slate-300 bg-white text-ink shadow-[0_8px_20px_rgba(15,23,42,0.08)]"
+                      : "",
+                  )}
+                  onClick={() => toggleSupportPanel("import")}
+                  variant="ghost"
+                >
+                  Importar perfil
+                </Button>
+                <Button
+                  className={cn(
+                    supportPanelButtonClassName,
+                    activeSupportPanel === "style"
+                      ? "border-slate-300 bg-white text-ink shadow-[0_8px_20px_rgba(15,23,42,0.08)]"
+                      : "",
+                  )}
+                  onClick={() => toggleSupportPanel("style")}
+                  variant="ghost"
+                >
+                  Ajustar estilo
+                </Button>
+                <Button
+                  className={cn(
+                    supportPanelButtonClassName,
+                    activeSupportPanel === "assistant"
+                      ? "border-slate-300 bg-white text-ink shadow-[0_8px_20px_rgba(15,23,42,0.08)]"
+                      : "",
+                  )}
+                  onClick={() => toggleSupportPanel("assistant")}
+                  variant="ghost"
+                >
+                  Assistente
+                </Button>
+              </div>
             </div>
-            <div className="flex flex-wrap gap-2">
-              <span className={`rounded-full px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] ${saveStatusMeta.className}`}>
-                {saveStatusMeta.label}
-              </span>
-              <span className="rounded-full bg-slate-100 px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-                Etapa {currentStep + 1}/{editorSteps.length}
-              </span>
-              <span className="rounded-full bg-brand-50 px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-brand-600">
-                Template {currentTemplateName}
-              </span>
-            </div>
-          </div>
+
+            {visibleFeedback ? (
+              <div className="mt-4 rounded-[20px] border border-slate-200 bg-slate-50/80 px-4 py-3 text-sm leading-6 text-slate-600">
+                {visibleFeedback}
+              </div>
+            ) : null}
+          </Panel>
 
           {isNew && resumeStorageMeta.limitReached ? (
             <div className="rounded-[28px] border border-amber-200 bg-[linear-gradient(145deg,rgba(255,251,235,0.96),rgba(254,243,199,0.78))] px-5 py-5 shadow-[0_18px_40px_rgba(217,119,6,0.10)]">
@@ -1022,206 +1176,107 @@ export default function EditorPage() {
             </div>
           ) : null}
 
-          <div className="grid gap-6 xl:items-start xl:grid-cols-[minmax(0,1.45fr)_360px] 2xl:grid-cols-[minmax(0,1.55fr)_380px]">
-            <div ref={editorSectionRef} className="space-y-6">
-              <div ref={editorCardRef}>
-                <Panel description="Navegue por secoes para montar o curriculo sem perder contexto." title="Editor">
-                  <div className="mb-6 rounded-[24px] border border-slate-200 bg-slate-50/80 p-4">
-                    <div className="flex items-center justify-between gap-4">
-                      <div>
-                        <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">Fluxo atual</p>
-                        <p className="mt-2 text-base font-semibold text-ink">{currentStepLabel}</p>
-                      </div>
-                      <div className="rounded-full bg-white px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 shadow-[0_10px_20px_rgba(15,23,42,0.06)]">
-                        {Math.round(progressPercent)}%
-                      </div>
-                    </div>
-                    <div className="mt-4 h-2 overflow-hidden rounded-full bg-white">
-                      <div
-                        className="h-2 rounded-full bg-[linear-gradient(90deg,#0f766e_0%,#14b8a6_100%)] transition-all duration-300"
-                        style={{ width: `${progressPercent}%` }}
-                      />
-                    </div>
-                    <div className="mt-4 grid gap-2 md:grid-cols-4">
-                      {editorSteps.map((step, index) => {
-                        const isActive = index === currentStep;
-                        const isCompleted = index < currentStep;
+          {activeSupportPanel === "import" ? (
+            <ProfileImportPanel onApply={handleImportedProfile} onDismiss={() => setActiveSupportPanel(null)} />
+          ) : null}
 
-                        return (
-                          <div
-                            key={`${step}-progress`}
-                            className={`rounded-[18px] border px-3 py-3 text-center text-xs font-semibold uppercase tracking-[0.16em] transition ${
-                              isActive
-                                ? "border-ink bg-ink text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)]"
-                                : isCompleted
-                                  ? "border-brand-200 bg-brand-50 text-brand-700"
-                                  : "border-slate-200 bg-white text-slate-500"
-                            }`}
-                          >
-                            {step}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap gap-3">
-                    {editorSteps.map((step, index) => {
-                      const active = index === currentStep;
-
-                      return (
-                        <button
-                          key={step}
-                          className={`flex items-center gap-3 rounded-full px-4 py-3 text-sm font-semibold transition ${
-                            active
-                              ? "bg-ink text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)]"
-                              : "border border-slate-200 bg-white text-slate-600 hover:border-slate-400 hover:text-ink"
-                          }`}
-                          onClick={() => setCurrentStep(index)}
-                          type="button"
-                        >
-                          <span
-                            className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${
-                              active ? "bg-white/15 text-white" : "bg-slate-100 text-slate-500"
-                            }`}
-                          >
-                            {String(index + 1).padStart(2, "0")}
-                          </span>
-                          {step}
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  <div className="mt-6">{renderStep()}</div>
-
-                  <div className="mt-8 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                    <Button
-                      disabled={currentStep === 0}
-                      onClick={() => setCurrentStep((value) => Math.max(value - 1, 0))}
-                      variant="secondary"
-                    >
-                      Etapa anterior
-                    </Button>
-                    <div className="flex flex-col gap-3 sm:flex-row">
-                      <Button onClick={handlePreviewNavigation} variant="secondary">
-                        Pre-visualizar
-                      </Button>
-                      <Button onClick={resetResume} variant="ghost">
-                        Resetar
-                      </Button>
-                      <Button
-                        disabled={currentStep === editorSteps.length - 1}
-                        onClick={() => setCurrentStep((value) => Math.min(value + 1, editorSteps.length - 1))}
-                        variant="primary"
-                      >
-                        Proxima etapa
-                      </Button>
-                    </div>
-                  </div>
-                </Panel>
+          {activeSupportPanel === "style" ? (
+            <Panel
+              description="Abra o ajuste visual apenas quando precisar, sem ocupar a area principal do formulario."
+              title="Estilo"
+            >
+              <div className="space-y-4">
+                <div className="flex flex-wrap gap-2">
+                  <span className="rounded-full bg-brand-50 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-brand-700">
+                    Template: {currentTemplateName}
+                  </span>
+                  <span className="rounded-full bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-slate-600 shadow-[0_8px_18px_rgba(15,23,42,0.05)]">
+                    Fonte: {currentFontName}
+                  </span>
+                  <span className="rounded-full bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-slate-600 shadow-[0_8px_18px_rgba(15,23,42,0.05)]">
+                    Espacamento: {currentSpacingName}
+                  </span>
+                </div>
+                <CustomizationPanel customization={resume.customization} onChange={updateCustomization} />
               </div>
-            </div>
+            </Panel>
+          ) : null}
 
-            <div className="space-y-6 xl:min-h-0">
-              <Panel
-                className="xl:min-h-0"
-                description="Ajuste a apresentacao visual e use atalhos de IA sem poluir a tela principal do editor."
-                style={editorCardHeight ? { height: `${editorCardHeight}px` } : undefined}
-                title="Estilo e assistente"
-              >
-                <div className="flex h-full min-h-0 flex-col">
-                  <div className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">
-                    <div className="sticky top-0 z-10 rounded-[18px] border border-slate-200/80 bg-white/92 p-2.5 shadow-[0_10px_24px_rgba(15,23,42,0.05)] backdrop-blur">
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Acesso rapido</p>
-                      <div className="mt-2.5 grid grid-cols-2 gap-2">
-                        <button
-                          className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[11px] font-semibold text-slate-600 transition hover:border-slate-400 hover:bg-white hover:text-ink"
-                          onClick={() => scrollToSection(customizationSectionRef)}
-                          type="button"
-                        >
-                          Estilo
-                        </button>
-                        <button
-                          className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[11px] font-semibold text-slate-600 transition hover:border-slate-400 hover:bg-white hover:text-ink"
-                          onClick={() => scrollToSection(assistantSectionRef)}
-                          type="button"
-                        >
-                          Assistente
-                        </button>
-                      </div>
-                    </div>
+          {activeSupportPanel === "assistant" ? (
+            <Panel description="Use os atalhos de IA apenas quando precisar destravar texto ou habilidades." title="Assistente">
+              <AiAssistantPanel
+                busyActions={busyActions}
+                embedded
+                onGenerateSummary={handleGenerateSummary}
+                onImproveSummary={handleImproveSummary}
+                onRewriteObjective={handleRewriteObjective}
+                onSuggestSkills={handleSuggestSkills}
+              />
+            </Panel>
+          ) : null}
 
-                    <div ref={customizationSectionRef} className="rounded-[22px] border border-slate-200/80 bg-[linear-gradient(180deg,rgba(248,250,252,0.92),rgba(255,255,255,0.84))] p-3.5">
-                      <div className="mb-3 flex flex-col gap-1.5">
-                        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Customizacao</p>
-                        <p className="text-xs leading-5 text-slate-500">
-                          Ajuste cor, fonte e hierarquia sem sair do fluxo.
-                        </p>
-                      </div>
-                      <div className="mb-3 flex flex-wrap gap-1.5">
-                        <span className="rounded-full bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-700 shadow-[0_8px_18px_rgba(15,23,42,0.05)]">
-                          Template: {currentTemplateName}
-                        </span>
-                        <span className="rounded-full bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500 shadow-[0_8px_18px_rgba(15,23,42,0.05)]">
-                          Fonte: {currentFontName}
-                        </span>
-                        <span className="rounded-full bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500 shadow-[0_8px_18px_rgba(15,23,42,0.05)]">
-                          Espacamento: {currentSpacingName}
-                        </span>
-                      </div>
-                      <CustomizationPanel compact customization={resume.customization} onChange={updateCustomization} />
+          <div ref={editorSectionRef} className="space-y-6">
+            <Panel title="Editor">
+              <div className="space-y-4">
+                <div className="rounded-[22px] border border-slate-200 bg-slate-50/80 px-4 py-4">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <h3 className="text-xl font-semibold tracking-tight text-ink">{currentStepMeta.label}</h3>
+                      <p className="mt-1 text-sm leading-6 text-slate-600">
+                        {blockingCount > 0 ? `Complete: ${blockingSummary}.` : currentStepMeta.tip}
+                      </p>
                     </div>
-
-                    <div ref={assistantSectionRef} className="rounded-[22px] border border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.9))] p-3.5">
-                      <div className="mb-3 flex flex-col gap-1.5">
-                        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Assistente inteligente em breve</p>
-                        <p className="text-xs leading-5 text-slate-500">
-                          Bloco de demonstracao da camada inteligente prevista para o proximo ciclo do produto.
-                        </p>
-                      </div>
-                      <AiAssistantPanel
-                        busyActions={busyActions}
-                        compact
-                        embedded
-                        onGenerateSummary={handleGenerateSummary}
-                        onImproveSummary={handleImproveSummary}
-                        onRewriteObjective={handleRewriteObjective}
-                        onSuggestSkills={handleSuggestSkills}
-                      />
-                    </div>
+                    <span className="rounded-full bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-slate-600 shadow-[0_8px_18px_rgba(15,23,42,0.05)]">
+                      {currentStepMeta.completedCount}/{currentStepMeta.totalCount}
+                    </span>
                   </div>
                 </div>
-              </Panel>
-            </div>
 
-            <div ref={previewSectionRef} className="space-y-4">
-              <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-400">Preview ao vivo</p>
-                  <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">Visualize o curriculo em uma secao dedicada</h2>
-                  <p className="mt-2 max-w-3xl text-sm leading-7 text-slate-500">
-                    O preview foi separado dos controles para facilitar a edicao e a leitura do resultado final.
-                  </p>
+                <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-4">
+                  {stepMeta.map((item, index) => (
+                    <StepTab
+                      isActive={index === currentStep}
+                      item={item}
+                      key={item.label}
+                      onClick={() => setCurrentStep(index)}
+                    />
+                  ))}
                 </div>
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                  <div className="rounded-full border border-white/80 bg-white/80 px-4 py-2 text-sm font-semibold text-slate-500 shadow-soft">
-                    Atualizacao instantanea
-                  </div>
-                  <Button onClick={() => scrollToSection(editorSectionRef)} variant="secondary">
-                    Voltar para o editor
+
+                {renderStep()}
+
+                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                  <Button
+                    className="w-full px-4 py-2 text-xs md:w-auto"
+                    disabled={currentStep === 0}
+                    onClick={() => setCurrentStep((value) => Math.max(value - 1, 0))}
+                    variant="ghost"
+                  >
+                    Etapa anterior
                   </Button>
+                  <div className="flex flex-col gap-2 sm:flex-row">
+                    <Button
+                      className="w-full px-4 py-2 text-xs text-rose-700 hover:bg-rose-50 hover:text-rose-800 sm:w-auto"
+                      onClick={handleResetCurrentContent}
+                      variant="ghost"
+                    >
+                      Limpar conteudo
+                    </Button>
+                    <Button className="w-full px-4 py-2 text-xs sm:w-auto" onClick={handlePreviewNavigation} variant="secondary">
+                      Abrir preview
+                    </Button>
+                    <Button
+                      className="w-full sm:w-auto"
+                      disabled={currentStep === editorSteps.length - 1}
+                      onClick={() => setCurrentStep((value) => Math.min(value + 1, editorSteps.length - 1))}
+                      variant="primary"
+                    >
+                      Proxima etapa
+                    </Button>
+                  </div>
                 </div>
               </div>
-
-              {shouldLoadPreview ? (
-                <Suspense fallback={<PreviewFallbackCard />}>
-                  <ResumePreview onPaginationChange={setPaginationInfo} resume={resume} />
-                </Suspense>
-              ) : (
-                <PreviewFallbackCard />
-              )}
-            </div>
+            </Panel>
           </div>
         </div>
       )}

@@ -45,6 +45,7 @@ export default function App() {
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/editor/new" element={<EditorPage />} />
           <Route path="/editor/:id" element={<EditorPage />} />
+          <Route path="/preview/draft" element={<PreviewPage />} />
           <Route path="/preview/:id" element={<PreviewPage />} />
           <Route path="*" element={<Navigate replace to="/" />} />
         </Routes>

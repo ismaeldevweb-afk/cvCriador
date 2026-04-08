@@ -21,7 +21,7 @@ export default function ModernTemplate({ resume, theme = buildThemeTokens(resume
   return (
     <article className="overflow-hidden rounded-[28px] bg-white shadow-[0_20px_70px_rgba(15,23,42,0.12)]" style={{ fontFamily: theme.fontFamily }}>
       <div className="grid lg:grid-cols-[260px_minmax(0,1fr)]">
-        <aside className="p-8 text-white" style={{ backgroundColor: theme.primaryColor }}>
+        <div className="p-8 text-white" style={{ backgroundColor: theme.primaryColor }}>
           {snapshot.personal.photo ? (
             <div className="mb-6">
               <ProfilePhoto
@@ -33,16 +33,16 @@ export default function ModernTemplate({ resume, theme = buildThemeTokens(resume
               />
             </div>
           ) : null}
-          <p className="text-xs uppercase tracking-[0.34em] text-white/65">Perfil</p>
-          <h1 className="mt-5 font-semibold tracking-tight" style={{ fontSize: theme.titleSize }}>
+          <p className="text-xs uppercase tracking-[0.34em] text-white/88">Perfil</p>
+          <p className="mt-5 font-semibold tracking-tight" style={{ fontSize: theme.titleSize }}>
             {snapshot.personal.fullName || "Seu nome"}
-          </h1>
-          <p className="mt-3 text-sm leading-7 text-white/80">{snapshot.personal.role || "Seu cargo principal"}</p>
+          </p>
+          <p className="mt-3 text-sm leading-7 text-white/92">{snapshot.personal.role || "Seu cargo principal"}</p>
 
           <div className="mt-8 space-y-6">
             <div>
-              <p className="text-xs uppercase tracking-[0.34em] text-white/65">Contato</p>
-              <div className="mt-3 space-y-2 text-sm leading-6 text-white/85">
+              <p className="text-xs uppercase tracking-[0.34em] text-white/88">Contato</p>
+              <div className="mt-3 space-y-2 text-sm leading-6 text-white/95">
                 {snapshot.contactLines.map((line) => (
                   <p key={line}>{line}</p>
                 ))}
@@ -50,7 +50,7 @@ export default function ModernTemplate({ resume, theme = buildThemeTokens(resume
             </div>
 
             <div>
-              <p className="text-xs uppercase tracking-[0.34em] text-white/65">Skills</p>
+              <p className="text-xs uppercase tracking-[0.34em] text-white/88">Skills</p>
               <div className="mt-3 flex flex-wrap gap-2">
                 {snapshot.skills.map((skill) => (
                   <span key={skill} className="rounded-full border border-white/20 px-3 py-2 text-xs font-semibold">
@@ -61,8 +61,8 @@ export default function ModernTemplate({ resume, theme = buildThemeTokens(resume
             </div>
 
             <div>
-              <p className="text-xs uppercase tracking-[0.34em] text-white/65">Idiomas</p>
-              <div className="mt-3 space-y-2 text-sm leading-6 text-white/85">
+              <p className="text-xs uppercase tracking-[0.34em] text-white/88">Idiomas</p>
+              <div className="mt-3 space-y-2 text-sm leading-6 text-white/95">
                 {snapshot.languages.map((item) => (
                   <p key={item.id}>
                     {item.name} {item.level ? `• ${item.level}` : ""}
@@ -71,7 +71,7 @@ export default function ModernTemplate({ resume, theme = buildThemeTokens(resume
               </div>
             </div>
           </div>
-        </aside>
+        </div>
 
         <div className="space-y-6 p-8 lg:p-10" style={{ gap: theme.sectionGap }}>
           <Section theme={theme} title="Objetivo">

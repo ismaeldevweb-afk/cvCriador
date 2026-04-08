@@ -34,9 +34,9 @@ export default function LedgerTemplate({ resume, theme = buildThemeTokens(resume
           <p className="text-xs font-semibold uppercase tracking-[0.34em]" style={{ color: theme.primaryColor }}>
             {snapshot.title || "Ledger professional"}
           </p>
-          <h1 className="mt-5 font-semibold tracking-tight text-slate-950" style={{ fontSize: theme.titleSize }}>
+          <p className="mt-5 font-semibold tracking-tight text-slate-950" style={{ fontSize: theme.titleSize }}>
             {snapshot.personal.fullName || "Seu nome"}
-          </h1>
+          </p>
           <p className="mt-3 max-w-3xl text-lg leading-8 text-slate-600">
             {snapshot.personal.role || "Estrutura refinada para trajetorias densas, curriculos seniores e leitura altamente organizada."}
           </p>
@@ -69,7 +69,7 @@ export default function LedgerTemplate({ resume, theme = buildThemeTokens(resume
       </header>
 
       <div className="grid gap-6 p-8 lg:grid-cols-[1.12fr_0.88fr] lg:px-10 lg:py-10">
-        <main className="space-y-6">
+        <div className="space-y-6">
           <RuledCard theme={theme} title="Experiencia profissional">
             <div className="space-y-5">
               {snapshot.experience.map((item) => (
@@ -107,9 +107,9 @@ export default function LedgerTemplate({ resume, theme = buildThemeTokens(resume
               ))}
             </div>
           </RuledCard>
-        </main>
+        </div>
 
-        <aside className="space-y-6">
+        <div className="space-y-6">
           <RuledCard theme={theme} title="Objetivo">
             <p className="text-[15px] leading-7 text-slate-700">
               {snapshot.objective || "Defina o tipo de escopo, responsabilidade e ambiente que representam melhor seu proximo passo profissional."}
@@ -162,7 +162,7 @@ export default function LedgerTemplate({ resume, theme = buildThemeTokens(resume
               <p className="text-[15px] leading-7 text-slate-700">{snapshot.additionalInfo}</p>
             </RuledCard>
           ) : null}
-        </aside>
+        </div>
       </div>
     </article>
   );

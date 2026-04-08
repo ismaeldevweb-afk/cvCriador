@@ -29,9 +29,9 @@ export default function ExecutiveTemplate({ resume, theme = buildThemeTokens(res
             <p className="text-xs font-semibold uppercase tracking-[0.34em]" style={{ color: theme.primaryColor }}>
               {snapshot.title || "Perfil executivo"}
             </p>
-            <h1 className="mt-5 font-semibold tracking-tight text-slate-950" style={{ fontSize: theme.titleSize }}>
+            <p className="mt-5 font-semibold tracking-tight text-slate-950" style={{ fontSize: theme.titleSize }}>
               {snapshot.personal.fullName || "Seu nome"}
-            </h1>
+            </p>
             <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-600">
               {snapshot.personal.role || "Posicionamento estrategico, lideranca e execucao orientada a resultado."}
             </p>
@@ -67,7 +67,7 @@ export default function ExecutiveTemplate({ resume, theme = buildThemeTokens(res
       </header>
 
       <div className="grid lg:grid-cols-[320px_minmax(0,1fr)]">
-        <aside className="space-y-5 bg-slate-50/90 p-8">
+        <div className="space-y-5 bg-slate-50/90 p-8">
           <SidebarBlock theme={theme} title="Objetivo">
             <p className="text-[15px] leading-7 text-slate-700">
               {snapshot.objective || "Descreva a direcao de carreira, o escopo desejado e o tipo de impacto que voce pretende gerar."}
@@ -116,9 +116,9 @@ export default function ExecutiveTemplate({ resume, theme = buildThemeTokens(res
               <p className="text-[15px] leading-7 text-slate-700">{snapshot.additionalInfo}</p>
             </SidebarBlock>
           ) : null}
-        </aside>
+        </div>
 
-        <main className="space-y-8 p-8 lg:p-10">
+        <div className="space-y-8 p-8 lg:p-10">
           <section>
             <SectionTitle theme={theme}>Experiencia profissional</SectionTitle>
             <div className="mt-5 space-y-5">
@@ -190,7 +190,7 @@ export default function ExecutiveTemplate({ resume, theme = buildThemeTokens(res
               </div>
             </section>
           </div>
-        </main>
+        </div>
       </div>
     </article>
   );
